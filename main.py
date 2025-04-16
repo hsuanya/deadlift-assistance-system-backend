@@ -147,29 +147,32 @@ async def websocket_endpoint(websocket: WebSocket):
     #         break
     while True:
         data = await websocket.receive_text()
-        message = json.loads(data)
-        img_data = base64.b64decode(message['image'])
-        cam_index = message['index']
+        result = []
+        messages = json.loads(data)
+        for message in messages:
+            img_data = base64.b64decode(message['image'])
+            cam_index = message['index']
 
-        # 解碼成影像
-        nparr = np.frombuffer(img_data, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # 解碼成影像
+            nparr = np.frombuffer(img_data, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # 儲存影像（可根據時間與 camera index 命名）
-        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        # filename = f"tmp/camera_{timestamp}.jpg"
-        # cv2.imwrite(filename, frame)
+            # 儲存影像（可根據時間與 camera index 命名）
+            # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            # filename = f"tmp/camera_{timestamp}.jpg"
+            # cv2.imwrite(filename, frame)
 
-        # 做一些處理（範例：轉灰階）
-        processed = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)
+            # 做一些處理（範例：轉灰階）
+            processed = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)
 
-        # 回傳處理後的影像
-        _, buffer = cv2.imencode('.jpg', processed)
-        processed_b64 = base64.b64encode(buffer).decode('utf-8')
-
-        await websocket.send_text(
-            json.dumps({
+            # 回傳處理後的影像
+            _, buffer = cv2.imencode('.jpg', processed)
+            processed_b64 = base64.b64encode(buffer).decode('utf-8')
+            result.append({
                 "index": cam_index,
-                "processed_image": processed_b64,
-            }))
+                "image": processed_b64,
+            })
+            print(len(result))
+
+        await websocket.send_text(json.dumps(result))
