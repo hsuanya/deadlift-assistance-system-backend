@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Union
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 import random
@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import base64
 
+from compute_frame import Human_Vision, predict
 import api_func
 
 app = FastAPI()
@@ -24,19 +25,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+is_recording = False
+id = 1000
 
 
 @app.get("/detection_result/{item_id}")
-def read_detection_result(item_id: int):
+def get_detection_result(item_id: int):
     error = ["動作正確", "槓鈴遠離小腿", "臀部先上升", "槓鈴繞膝蓋", "駝背"]
     error_result = random.randint(0, 4)
     confidence_level = {
@@ -59,21 +53,26 @@ def read_detection_result(item_id: int):
         "confidence_level": confidence_level
     }
     try:
-        with open("feedback.json", mode='r', encoding='utf-8') as json_file:
+        with open("recordings.json", mode='r', encoding='utf-8') as json_file:
             data = json.load(json_file)
     except:
         data = {}
     data[item_id] = result
-    with open("feedback.json", mode='w', encoding='utf-8') as json_file:
+    with open("recordings.json", mode='w', encoding='utf-8') as json_file:
         json.dump(data, json_file, indent=4)
 
     return result
 
 
+@app.get("/graph/{item_id}")
+def get_graph(item_id: int):
+    pass
+
+
 @app.get("/feedback/{item_id}")
 def read_feedback(item_id: int):
-    # return {'result': 'result'}
-    with open("feedback.json", mode='r', encoding='utf-8') as json_file:
+    return {'result': 'result'}
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
@@ -87,8 +86,8 @@ def read_feedback(item_id: int):
 
 @app.get("/workout_plan/{item_id}")
 def read_workout_plan(item_id: int):
-    # return {'result': 'result'}
-    with open("feedback.json", mode='r', encoding='utf-8') as json_file:
+    return {'result': 'result'}
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
@@ -102,8 +101,8 @@ def read_workout_plan(item_id: int):
 
 @app.get("/video_list/{item_id}")
 def read_video_list(item_id: int):
-    # return {'result': []}
-    with open("feedback.json", mode='r', encoding='utf-8') as json_file:
+    return {'result': []}
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
@@ -128,51 +127,46 @@ def read_video_list(item_id: int):
     return {'result': result}
 
 
+@app.post("/start_record")
+def start_record():
+    global is_recording
+    is_recording = True
+    return {'result': True}
+
+
+@app.post("/stop_record")
+def start_record():
+    global is_recording, id
+    is_recording = False
+    record_id = id
+    id += 1
+    return {'id': str(record_id)}
+
+
 @app.websocket("/ws/stream")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    # while True:
-    #     try:
-    #         data = await websocket.receive_bytes()
-    #         # 你可以用 OpenCV 處理這個 frame，例如：
-    #         # image_np = np.frombuffer(data, np.uint8)
-    #         # frame = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+    human_vision = Human_Vision()
 
-    #         print(f"Received frame size: {len(data)}")
-
-    #         # 處理完後把回傳資料送回（這邊只是 echo）
-    #         await websocket.send_text("Frame received")
-    #     except Exception as e:
-    #         print("WebSocket error:", e)
-    #         break
     while True:
         data = await websocket.receive_text()
         result = []
         messages = json.loads(data)
+
         for message in messages:
             img_data = base64.b64decode(message['image'])
-            cam_index = message['index']
-
-            # 解碼成影像
             nparr = np.frombuffer(img_data, np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            cam_index = message['index']
+            human_vision.create_thread(cam_index, frame, is_recording, id)
 
-            # 儲存影像（可根據時間與 camera index 命名）
-            # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            # filename = f"tmp/camera_{timestamp}.jpg"
-            # cv2.imwrite(filename, frame)
+        frames, idxs = human_vision.get_frame()
 
-            # 做一些處理（範例：轉灰階）
-            processed = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2BGR)
-
-            # 回傳處理後的影像
-            _, buffer = cv2.imencode('.jpg', processed)
+        for frame, idx in zip(frames, idxs):
+            _, buffer = cv2.imencode('.jpg', frame)
             processed_b64 = base64.b64encode(buffer).decode('utf-8')
             result.append({
-                "index": cam_index,
+                "index": idx,
                 "image": processed_b64,
             })
-            print(len(result))
-
         await websocket.send_text(json.dumps(result))
