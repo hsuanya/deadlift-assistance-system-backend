@@ -85,8 +85,8 @@ args = parser.parse_args()
 dir = args.dir
 
 # 設定要處理的文件
-input_files = [os.path.join(dir, 'mediapipe_landmarks.txt')]  # 請替換為你的輸入檔名
-output_files = [os.path.join(dir, 'mediapipe_landmarks_1st_interp.txt')]  # 對應的輸出檔名
+input_files = [os.path.join(dir, 'yolo_skeleton.txt')]  # 請替換為你的輸入檔名
+output_files = [os.path.join(dir, 'yolo_skeleton_1st_interp.txt')]  # 對應的輸出檔名
 
 # 對每個文件進行內插處理
 for input_file, output_file in zip(input_files, output_files):
@@ -105,7 +105,7 @@ def load_yolo_data(filename):
                 if len(values) == 5:  # YOLO 的資料應有 5 個欄位
                     data.append(values)
             except ValueError:
-                print(f"Skipping line: {line}")
+                pass
     return np.array(data)
 
 
@@ -134,8 +134,19 @@ def interpolate_missing_detections(yolo_data):
     interpolated_widths = interp_widths(all_frames)
     interpolated_heights = interp_heights(all_frames)
 
+    # 補前面值的版本（假設要補 all_frames[0] 個平均值）
+    padded_features = []
+    for feature_array in [interpolated_x_center, interpolated_y_center, interpolated_widths, interpolated_heights]:
+        avg = np.mean(feature_array)
+        pad_len = all_frames[0]  # 補的長度
+        padded_array = np.concatenate([[avg] * pad_len, feature_array])
+        padded_features.append(padded_array)
+
+    # 更新 all_frames 長度（補前面）
+    all_frames = np.arange(0, all_frames[-1] + 1)
+
     # 組合內插後的資料
-    interpolated_data = np.column_stack((all_frames, interpolated_x_center, interpolated_y_center, interpolated_widths, interpolated_heights))
+    interpolated_data = np.column_stack((all_frames, padded_features[0], padded_features[1], padded_features[2], padded_features[3]))
     return interpolated_data
 
 # 載入 YOLO 資料
@@ -156,7 +167,7 @@ yolo_data = np.loadtxt(yolo_interpolated_path, delimiter=',')
 yolo_frames = yolo_data[:, 0]  # frame numbers
 
 # 讀取第一份 MediaPipe 的資料
-mediapipe_data_1 = np.loadtxt(os.path.join(dir, 'mediapipe_landmarks_1st_interp.txt'), delimiter=',')
+mediapipe_data_1 = np.loadtxt(os.path.join(dir, 'yolo_skeleton_1st_interp.txt'), delimiter=',')
 landmarks_1 = np.unique(mediapipe_data_1[:, 1])  # unique landmark numbers
 
 def interpolate_mediapipe(yolo_frames, mediapipe_data, landmarks):
@@ -206,7 +217,7 @@ def interpolate_mediapipe(yolo_frames, mediapipe_data, landmarks):
 # 處理第一份 MediaPipe 資料
 interpolated_data_1 = interpolate_mediapipe(yolo_frames, mediapipe_data_1, landmarks_1)
 
-output_mediapipe = os.path.join(dir, 'interpolated_mediapipe_landmarks_1.txt')
+output_mediapipe = os.path.join(dir, 'interpolated_yolo_skeleton.txt')
 # 將內插後的資料寫入 TXT 檔案
 with open(output_mediapipe, 'w') as f:
     for entry in interpolated_data_1:

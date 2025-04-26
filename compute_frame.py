@@ -67,7 +67,6 @@ class Human_Vision:
         return bar_model, bone_model
 
     def create_thread(self, i, frame, rc_sig, id):
-        print(rc_sig)
         if rc_sig and rc_sig != self.recording_sig:
             if i == 0:
                 now = datetime.now()
@@ -153,27 +152,28 @@ class Human_Vision:
         file = os.path.join(folder, f'vision{idx+1}.avi')
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         frame_size = (frame.shape[0], frame.shape[1])  # 幀大小 (width, height)
-        out = cv2.VideoWriter(file, fourcc, 5, frame_size)
+        out = cv2.VideoWriter(file, fourcc, 30, frame_size)
         bar_file = open(os.path.join(folder, 'yolo_coordinates.txt'), "w")
         skeleton_file = open(os.path.join(folder, 'yolo_skeleton.txt'), "w")
         return out, bar_file, skeleton_file
 
 
 def predict(folder):
+    os.makedirs(f'{folder}/config', exist_ok=True)
     # 對槓端及骨架做內插
     os.system(f'python ./tools/Deadlift_tool/interpolate.py {folder}')
     # bar
     os.system(
-        f'python ./tools/Deadlift_tool/bar_data_produce.py {folder} --out ./recordings/{folder}/config --sport deadlift'
+        f'python ./tools/Deadlift_tool/bar_data_produce.py {folder} --out {folder}/config --sport deadlift'
     )
     # angle
     os.system(
-        f'python ./tools/Deadlift_tool/data_produce.py {folder} --out ./recordings/{folder}/config'
+        f'python ./tools/Deadlift_tool/data_produce.py {folder} --out {folder}/config'
     )
     # split data
     os.system(f'python ./tools/Deadlift_tool/data_split.py {folder}')
     # modle predict
     os.system(
-        f'python ./tools/Deadlift_tool/predict.py {folder} --out ./recordings/{folder}/config'
+        f'python ./tools/Deadlift_tool/predict.py {folder} --out {folder}/config'
     )
     os.system(f'python ./tools/trajectory.py {folder}')

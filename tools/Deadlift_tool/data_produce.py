@@ -113,7 +113,7 @@ args = parser.parse_args()
 dir = args.dir
 out = args.out
 skeleton_file_path = os.path.join(dir,
-                                  'interpolated_mediapipe_landmarks_1.txt')
+                                  'interpolated_yolo_skeleton.txt')
 barbell_file_path = os.path.join(dir, 'yolo_coordinates_interpolated.txt')
 
 skeleton_data = read_skeleton_data(skeleton_file_path)
