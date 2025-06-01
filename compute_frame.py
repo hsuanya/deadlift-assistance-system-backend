@@ -53,7 +53,8 @@ class Human_Vision:
 
     def model_init(self):
         device_0 = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        device_1 = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+        device_1 = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+        print('device_1:', device_1)
         bar_model = YOLO("./model/deadlift/bar/best.pt").to(device_0)
         bone_model = YOLO("./model/deadlift/skeleton/yolov8n-pose.pt").to(
             device_1)

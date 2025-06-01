@@ -21,7 +21,9 @@ def bar_frame(frame,
         print(f"Started writing video(bar)")
 
     # frame 處理
-    results = model(source=frame, imgsz=320, conf=0.5, verbose=False)
+    start_time = time.time()
+    results = model(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
+    print('bar predict :', time.time() - start_time)
     boxes = results[0].boxes
     detected = False
     for result in results:
@@ -63,7 +65,9 @@ def bone_frame(frame,
         print(f"Started writing video(bone)")
 
     # ✅ YOLO 偵測骨架
-    results = list(model(source=frame, stream=True, verbose=False))
+    start_count = time.time()
+    results = list(model(source=frame, verbose=False, device="cuda:0"))
+    print('bone predict : ', time.time() - start_count)
     # frame_count_for_detect += 1
     if results and results[0].keypoints:  # ✅ 確保有偵測到人
         r2 = results[0]  # ✅ 只取第一個偵測結果
@@ -102,7 +106,6 @@ def bone_frame(frame,
         # ❌ **沒有偵測到人，寫入 "no detection"**
         if txt_file is not None:
             txt_file.write(f"{frame_count_for_detect},no detection\n")
-
     # barrier.wait()
     return frame
 
