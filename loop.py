@@ -1,79 +1,145 @@
 import time, os, cv2
 import torch
-
+import numpy as np
 
 def bar_frame(frame,
-              model,
-              barrier,
+              bar_model,
+              bone_model,
+              skeleton_connections,
               out,
-              txt_file,
-              frame_count_for_detect,
-              target_fps=10):
+              skeleton_file,
+              bar_file,
+              frame_count_for_detect):
     # fps 計算
     start_time = time.time()
 
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     # 錄影開始
-    cond = txt_file is not None and out is not None
-    if cond:
-        # waste_time(start_time, target_fps)
-        out.write(frame)
-        print(f"Started writing video(bar)")
+    # cond = skeleton_file is not None and out is not None and bar_file is not None
+    # if cond:
+    #     out.write(frame)
+    #     print(f"Started writing video(bar)")
 
     # frame 處理
     start_time = time.time()
-    results = model(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
-    print('bar predict :', time.time() - start_time)
+    results = bar_model(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
+    # print('bar predict :', time.time() - start_time)
     boxes = results[0].boxes
     detected = False
     for result in results:
         frame = result.plot()
-
+    
     # write result
-    if txt_file is not None:
+    if bar_file is not None:
         for box in boxes.xywh:
             detected = True
             x_center, y_center, width, height = box
-            txt_file.write(
+            bar_file.write(
                 f"{frame_count_for_detect},{x_center},{y_center},{width},{height}\n"
             )
 
         if not detected:
             frame_count_for_detect += 1
-            txt_file.write(f"{frame_count_for_detect},no detection\n")
+            bar_file.write(f"{frame_count_for_detect},no detection\n")
+        
+    results = list(bone_model(source=frame, verbose=False, device="cuda:0"))
+    if results and results[0].keypoints:
+        keypoints = results[0].keypoints
+        frame_h, frame_w = frame.shape[:2]
+        center_frame = np.array([frame_w / 2, frame_h / 2])
 
-    # barrier.wait()
+        min_dist = float('inf')
+        target_kpts = None
+
+        for kp in keypoints:
+            coords = kp.xy[0].cpu().numpy()
+            valid_coords = coords[(coords != 0).all(axis=1)]
+            if len(valid_coords) == 0:
+                continue
+            person_center = np.mean(valid_coords, axis=0)
+            dist = np.linalg.norm(person_center - center_frame)
+            if dist < min_dist:
+                min_dist = dist
+                target_kpts = coords
+
+        if target_kpts is not None:
+            keypoints_xy = [target_kpts]
+        else:
+            keypoints_xy = []
+
+        # ✅ 過濾無效骨架點 (0,0)
+        kp_coords = []
+        frame_data = []  # 存放該幀的骨架點
+        for idx, kp in enumerate(keypoints_xy[0]):
+            x_kp, y_kp = int(kp[0].item()), int(kp[1].item())
+
+            # ✅ 若骨架點為 (0,0)，則標記為 None（不畫）
+            if x_kp == 0 and y_kp == 0:
+                kp_coords.append(None)
+            else:
+                kp_coords.append((x_kp, y_kp))
+                cv2.circle(frame, (x_kp, y_kp), 5, (0, 255, 0), cv2.FILLED)
+
+            frame_data.append(f"{frame_count_for_detect},{idx},{x_kp},{y_kp}")
+
+        # ✅ 繪製骨架連線，若其中一個點為 None，則不畫線
+        for start_idx, end_idx in skeleton_connections:
+            if start_idx < len(kp_coords) and end_idx < len(kp_coords):
+                if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
+                    continue
+                cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
+                         (0, 255, 255), 2)
+
+        # ✅ **將骨架點資訊寫入 `txt_file`**
+        if skeleton_file is not None:
+            skeleton_file.write("\n".join(frame_data) + "\n")
+
+    else:
+        # ❌ **沒有偵測到人，寫入 "no detection"**
+        if skeleton_file is not None:
+            skeleton_file.write(f"{frame_count_for_detect},no detection\n")
     return frame
-
 
 def bone_frame(frame,
                model,
                skeleton_connections,
-               barrier,
                out,
                txt_file,
-               frame_count_for_detect,
-               target_fps=10):
+               frame_count_for_detect):
     # fps 計算
     start_time = time.time()
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     # 錄影開始
-    cond = txt_file is not None and out is not None
-    if cond:
-        # waste_time(start_time, target_fps)
-        out.write(frame)
-        print(f"Started writing video(bone)")
+    # cond = txt_file is not None and out is not None
+    # if cond:
+    #     out.write(frame)
+    #     print(f"Started writing video(bone)")
 
     # ✅ YOLO 偵測骨架
     start_count = time.time()
     results = list(model(source=frame, verbose=False, device="cuda:0"))
-    print('bone predict : ', time.time() - start_count)
-    # frame_count_for_detect += 1
-    if results and results[0].keypoints:  # ✅ 確保有偵測到人
-        r2 = results[0]  # ✅ 只取第一個偵測結果
-        keypoints = r2.keypoints
-        kpts = keypoints[0]  # ✅ 只取第一個人的骨架點
-        keypoints_xy = kpts.xy  # shape: (1, 17, 2) -> 17 個關鍵點
+    # print('bone predict :', time.time() - start_time)
+    if results and results[0].keypoints:
+        keypoints = results[0].keypoints
+        frame_h, frame_w = frame.shape[:2]
+        center_frame = np.array([frame_w / 2, frame_h / 2])
+
+        min_dist = float('inf')
+        target_kpts = None
+
+        for kp in keypoints:
+            coords = kp.xy[0].cpu().numpy()
+            valid_coords = coords[(coords != 0).all(axis=1)]
+            if len(valid_coords) == 0:
+                continue
+            person_center = np.mean(valid_coords, axis=0)
+            dist = np.linalg.norm(person_center - center_frame)
+            if dist < min_dist:
+                min_dist = dist
+                target_kpts = coords
+
+        if target_kpts is not None:
+            keypoints_xy = [target_kpts]
+        else:
+            keypoints_xy = []
 
         # ✅ 過濾無效骨架點 (0,0)
         kp_coords = []
@@ -106,32 +172,16 @@ def bone_frame(frame,
         # ❌ **沒有偵測到人，寫入 "no detection"**
         if txt_file is not None:
             txt_file.write(f"{frame_count_for_detect},no detection\n")
-    # barrier.wait()
     return frame
 
 
-def general_frame(frame, barrier, out, target_fps=10):
+def general_frame(frame, out):
     # fps 計算
     start_time = time.time()
     frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     # 錄影開始
     cond = out is not None
     if cond:
-        # waste_time(start_time, target_fps)
         out.write(frame)
         print(f"Started writing video")
-
-    # 錄影結束
-    # barrier.wait()
     return frame
-
-
-def waste_time(start_time, target_fps):
-    # 等待剩餘時間以達成 target_fps
-    elapsed = time.time() - start_time
-    frame_duration = 1 / target_fps
-    wait_time = frame_duration - elapsed
-    if wait_time > 0:
-        end_time = time.time()
-        while time.time() - end_time < wait_time:
-            pass  # 忙等待(busy wait)，也可用 time.sleep(wait_time) 替代
