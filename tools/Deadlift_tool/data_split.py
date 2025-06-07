@@ -272,60 +272,48 @@ def split_bar_data(original_bar_path, output_folder, valleys, valleys1,
 def plot_metrics_in_tkinter():
     global valleys, valleys1
 
-    fig, axes = Figure(figsize=(10, 6), dpi=100), [None, None]
-    axes[0] = fig.add_subplot(2, 1, 1)  # 原始數據圖
-    axes[1] = fig.add_subplot(2, 1, 2)  # 平滑後數據圖
+    # 圖表初始化
+    fig, axes = Figure(figsize=(10, 8), dpi=100), [None, None, None]
+    axes[0] = fig.add_subplot(3, 1, 1)  # 原始角度圖
+    axes[1] = fig.add_subplot(3, 1, 2)  # 平滑後角度圖
+    axes[2] = fig.add_subplot(3, 1, 3)  # 槓鈴Y座標圖
 
-    # 過濾掉 None 值
-    valid_frames = [
-        frames[i] for i in range(len(left_knee_angles))
-        if left_knee_angles[i] is not None
-    ]
-    valid_angles = np.array(
-        [angle for angle in left_knee_angles if angle is not None])
+    # 過濾角度資料中的 None
+    valid_frames = [frames[i] for i in range(len(left_knee_angles)) if left_knee_angles[i] is not None]
+    valid_angles = np.array([angle for angle in left_knee_angles if angle is not None])
 
-    # **平滑化曲線**
-    smoothed_angles = savgol_filter(valid_angles,
-                                    window_length=11,
-                                    polyorder=3)
+    # 平滑化角度
+    smoothed_angles = savgol_filter(valid_angles, window_length=11, polyorder=3)
+    peaks, _ = find_peaks(smoothed_angles, height=160, distance=55, prominence=5)
 
-    # 找出 170 度以上的峰值，間隔 10 幀以上
-    peaks, _ = find_peaks(smoothed_angles,
-                          height=160,
-                          distance=55,
-                          prominence=5)
+    # 波谷檢測
+    all_valleys, all_valleys1 = find_valleys(smoothed_angles, peaks, search_range=90, min_valley_value=170, min_depth=10)
 
-    # 找出峰值前後的谷底
-    all_valleys, all_valleys1 = find_valleys(smoothed_angles,
-                                             peaks,
-                                             search_range=90,
-                                             min_valley_value=170,
-                                             min_depth=10)
-
-    # 新的波谷列表
     valleys, valleys1 = [], []
-
-    # 確保每個峰值左右都有波谷
+    last_start, last_end = -1, -1  # 初始化前一段範圍
+    
     for peak in peaks:
-        # 檢查左側的波谷
-        left_valley = None
-        for valley in all_valleys:
-            if valley < peak:
-                left_valley = valley
-            else:
-                break
-
-        # 檢查右側的波谷
-        right_valley = None
-        for valley1 in all_valleys1:
-            if valley1 > peak:
-                right_valley = valley1
-                break
-
-        # 如果找到的左側和右側波谷都存在，則將其添加到各自的列表中
+        left_valley = next((v for v in reversed(all_valleys) if v < peak), None)
+        right_valley = next((v for v in all_valleys1 if v > peak), None)
+    
         if left_valley is not None and right_valley is not None:
-            valleys.append(left_valley)
-            valleys1.append(right_valley)
+            new_start, new_end = left_valley, right_valley
+    
+            # 檢查是否和上一段有超過 50% 重疊
+            if last_start != -1 and last_end != -1:
+                overlap_start = max(new_start, last_start)
+                overlap_end = min(new_end, last_end)
+                overlap = max(0, overlap_end - overlap_start)
+                len_last = last_end - last_start
+                len_new = new_end - new_start
+    
+                if overlap / min(len_last, len_new) > 0.5:
+                    print(f"跳過重疊片段：({new_start}, {new_end}) 和上一段重疊 {overlap} 幀")
+                    continue  # 跳過這個片段
+    
+            valleys.append(new_start)
+            valleys1.append(new_end)
+            last_start, last_end = new_start, new_end  # 更新上一段範圍
 
 
 def calculate_distance(x1, y1, x2, y2):
