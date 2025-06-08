@@ -1,24 +1,14 @@
-import time, os, cv2
-import torch
+import time
+import cv2
 import numpy as np
 
 def bar_frame(frame,
-              bar_model,
-              bone_model,
-              skeleton_connections,
-              out,
-              skeleton_file,
-              bar_file,
-              frame_count_for_detect):
-    # fps 計算
-    start_time = time.time()
-
-    # 錄影開始
-    # cond = skeleton_file is not None and out is not None and bar_file is not None
-    # if cond:
-    #     out.write(frame)
-    #     print(f"Started writing video(bar)")
-
+                bar_model,
+                bone_model,
+                skeleton_connections,
+                skeleton_file,
+                bar_file,
+                frame_count_for_detect):
     # frame 處理
     start_time = time.time()
     results = bar_model(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
@@ -87,7 +77,7 @@ def bar_frame(frame,
                 if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
                     continue
                 cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
-                         (0, 255, 255), 2)
+                        (0, 255, 255), 2)
 
         # ✅ **將骨架點資訊寫入 `txt_file`**
         if skeleton_file is not None:
@@ -100,19 +90,10 @@ def bar_frame(frame,
     return frame
 
 def bone_frame(frame,
-               model,
-               skeleton_connections,
-               out,
-               txt_file,
-               frame_count_for_detect):
-    # fps 計算
-    start_time = time.time()
-    # 錄影開始
-    # cond = txt_file is not None and out is not None
-    # if cond:
-    #     out.write(frame)
-    #     print(f"Started writing video(bone)")
-
+                model,
+                skeleton_connections,
+                txt_file,
+                frame_count_for_detect):
     # ✅ YOLO 偵測骨架
     start_count = time.time()
     results = list(model(source=frame, verbose=False, device="cuda:0"))
@@ -162,7 +143,7 @@ def bone_frame(frame,
                 if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
                     continue
                 cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
-                         (0, 255, 255), 2)
+                        (0, 255, 255), 2)
 
         # ✅ **將骨架點資訊寫入 `txt_file`**
         if txt_file is not None:
@@ -172,16 +153,4 @@ def bone_frame(frame,
         # ❌ **沒有偵測到人，寫入 "no detection"**
         if txt_file is not None:
             txt_file.write(f"{frame_count_for_detect},no detection\n")
-    return frame
-
-
-def general_frame(frame, out):
-    # fps 計算
-    start_time = time.time()
-    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-    # 錄影開始
-    cond = out is not None
-    if cond:
-        out.write(frame)
-        print(f"Started writing video")
     return frame

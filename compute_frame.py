@@ -3,14 +3,14 @@ import queue
 from ultralytics import YOLO
 import torch
 import loop
-import os, cv2
+import os
+import cv2
 import numpy as np
 from datetime import datetime
 import json
 
 
 class Human_Vision:
-
     def __init__(self):
         self.bar_model, self.bone_model = self.model_init()
         dir = './'
@@ -19,6 +19,7 @@ class Human_Vision:
             'Benchpress': os.path.join(dir, 'recordings', 'benchpress'),
             'Squat': os.path.join(dir, 'recordings', 'squat')
         }
+        self.visions = ['bar', 'left-front', 'left-back']
 
         self.skeleton_connections = [
             (0, 1),
@@ -41,9 +42,6 @@ class Human_Vision:
         self.barrier = threading.Barrier(3)
         self.clear_runtime_data()
         self.recording_sig = False
-        self.outs = [None] * 3
-        self.bar_files = [None] * 3
-        self.skeleton_files = [None] * 3
         self.frame_count_for_detect = 0
 
     def clear_runtime_data(self):
@@ -53,14 +51,11 @@ class Human_Vision:
 
     def model_init(self):
         device_0 = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        device_1 = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        print('device_1:', device_1)
         bar_model = YOLO("./model/deadlift/bar/best.pt").to(device_0)
-        bone_model = YOLO("./model/deadlift/skeleton/yolov8n-pose.pt").to(
-            device_1)
+        bone_model = YOLO("./model/deadlift/skeleton/yolo11s-pose.pt").to(device_0)
 
         # 預先跑一次，避免 multi-thread 時出現 fuse 的錯誤
-        dummy = np.zeros((640, 640, 3), dtype=np.uint8)
+        dummy = np.zeros((480, 640, 3), dtype=np.uint8)
         with torch.no_grad():
             bar_model.predict(dummy)
             bone_model.predict(dummy)
@@ -68,12 +63,14 @@ class Human_Vision:
         return bar_model, bone_model
 
     def create_thread(self, i, frame, rc_sig, id):
+        # rc_sig 為新訊號
+        # self.recording_sig 為舊訊號
         if rc_sig and rc_sig != self.recording_sig:
             if i == 0:
                 now = datetime.now()
                 timestamp = now.strftime("%Y%m%d_%H%M%S")
                 folder = os.path.join(self.save_path['Deadlift'],
-                                      f"recording_{timestamp}")
+                                        f"recording_{timestamp}")
                 os.makedirs(folder, exist_ok=True)
                 with open("recordings.json", mode='r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -84,11 +81,9 @@ class Human_Vision:
                     json.dump(data, f, indent=4)
 
                 self.outs = [None] * 3
-                self.bar_files = [None] * 3
+                self.bar_file = None
                 self.skeleton_files = [None] * 3
-                for idx in range(3):
-                    self.outs[idx], self.bar_files[idx], self.skeleton_files[
-                        idx] = self.rc_prep(idx, frame, folder)
+                self.outs, self.bar_file, self.skeleton_files = self.rc_prep(frame, folder)
                 print('Prepare for writing image')
                 self.frame_count_for_detect = 0
         elif rc_sig == self.recording_sig:
@@ -107,30 +102,35 @@ class Human_Vision:
                     if file:
                         file.close()
                 self.outs = [None] * 3
-                self.bar_files = [None] * 3
+                self.bar_file = None
                 self.skeleton_files = [None] * 3
                 self.frame_count_for_detect = 0
 
         self.recording_sig = rc_sig
         thread = threading.Thread(target=self.process_vision,
-                                  args=(i, frame),
-                                  daemon=True)
+                                    args=(i, frame),
+                                    daemon=True)
         self.threads.append(thread)
 
     def process_vision(self, i, frame):
         out = self.outs[i]
-        bar_file = self.bar_files[i]
+        bar_file = self.bar_file
         skeleton_file = self.skeleton_files[i]
         if i == 0:
-            frame = loop.bar_frame(frame, self.bar_model, self.barrier, out,
-                                   bar_file, self.frame_count_for_detect)
+            frame = loop.bar_frame(frame, self.bar_model, self.bone_model,
+                                    self.skeleton_connections, skeleton_file,
+                                    bar_file, self.frame_count_for_detect)
         elif i == 1:
             frame = loop.bone_frame(frame, self.bone_model,
-                                    self.skeleton_connections, self.barrier,
-                                    out, skeleton_file,
+                                    self.skeleton_connections, skeleton_file,
                                     self.frame_count_for_detect)
         else:
-            frame = loop.general_frame(frame, self.barrier, out)
+            frame = loop.bone_frame(frame, self.bone_model,
+                                    self.skeleton_connections, skeleton_file,
+                                    self.frame_count_for_detect)
+        cond = skeleton_file is not None and out is not None and bar_file is not None
+        if cond:
+            out.write(frame)
 
         self.frames.put(frame)
         self.idxs.put(i)
@@ -149,15 +149,19 @@ class Human_Vision:
         self.clear_runtime_data()
         return frames, idxs
 
-    def rc_prep(self, idx, frame, folder):
-        file = os.path.join(folder, f'vision{idx+1}.avi')
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        frame_size = (frame.shape[0], frame.shape[1])  # 幀大小 (width, height)
-        out = cv2.VideoWriter(file, fourcc, 30, frame_size)
-        bar_file = open(os.path.join(folder, 'yolo_coordinates.txt'), "w")
-        skeleton_file = open(os.path.join(folder, 'yolo_skeleton.txt'), "w")
-        return out, bar_file, skeleton_file
-
+    def rc_prep(self, frame, folder):
+        bar_file = open(os.path.join(folder, 'coordinates.txt'), "w")
+        outs = [None] * 3
+        skeleton_files = [None] * 3
+        for idx, vision in enumerate(self.visions):
+            file = os.path.join(folder, f'vision_{vision}.mp4')
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 編碼
+            frame_size = (frame.shape[0], frame.shape[1])
+            out = cv2.VideoWriter(file, fourcc, 30, frame_size)
+            skeleton_file = open(os.path.join(folder, f'skeleton_{vision}.txt'), "w")
+            outs[idx] = out
+            skeleton_files[idx] = skeleton_file
+        return outs, bar_file, skeleton_files
 
 def predict(folder):
     os.makedirs(f'{folder}/config', exist_ok=True)
