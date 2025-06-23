@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 import shutil
 from typing import List, Union
-from fastapi import FastAPI, File, UploadFile, WebSocket
+from fastapi import FastAPI, File, UploadFile, WebSocket, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from filelock import FileLock
@@ -186,6 +186,29 @@ async def get_video(item_id: int, vision_index: int):
     if os.path.exists(mp4_path):
         return FileResponse(mp4_path, media_type="video/mp4")
 
+    avi_to_mp4(folder, video_name)
+    # 加鎖轉檔，避免多個請求同時轉同一個檔案
+    # with FileLock(lock_path):
+    #     # 二次確認轉檔後是否已存在，避免重複轉檔
+    #     if not os.path.exists(mp4_path):
+    #         # 轉成 temp 檔，轉完再 rename 為正式 mp4
+    #         ffmpeg_cmd = [
+    #             "ffmpeg", "-i", avi_path,
+    #             "-c:v", "libx264", "-c:a", "aac",
+    #             "-strict", "experimental", temp_path
+    #         ]
+    #         subprocess.run(ffmpeg_cmd, check=True)
+
+    #         os.rename(temp_path, mp4_path)
+
+    return FileResponse(mp4_path, media_type="video/mp4")
+
+def avi_to_mp4(folder, video_name):
+    avi_path = os.path.join(folder, f"{video_name}.avi")
+    mp4_path = os.path.join(folder, f"{video_name}.mp4")
+    lock_path = os.path.join(folder, f"{video_name}.lock")
+    temp_path = os.path.join(folder, f"{video_name}.temp.mp4")
+
     # 加鎖轉檔，避免多個請求同時轉同一個檔案
     with FileLock(lock_path):
         # 二次確認轉檔後是否已存在，避免重複轉檔
@@ -199,8 +222,7 @@ async def get_video(item_id: int, vision_index: int):
             subprocess.run(ffmpeg_cmd, check=True)
 
             os.rename(temp_path, mp4_path)
-
-    return FileResponse(mp4_path, media_type="video/mp4")
+    return mp4_path
 
 @app.get("/feedback/{item_id}")
 def read_feedback(item_id: int):
@@ -239,26 +261,29 @@ def read_video_list(item_id: int):
         movement = json.load(json_file)
 
     movement_list = ['平板支撐', '臀推', '深蹲', '傳統硬舉', '羅馬尼亞硬舉', '臥推', '引體向上', '肩推']
-
-    if error == "動作正確":
-        recommend_video_prompt = """你是一個健身教練，如果有個學員在做硬舉時動作非常正確，你會建議他這些動作裡的哪些%s？請回我一個格式一樣的 list of string""" % ' '.join(
-            movement_list)
-    else:
-        recommend_video_prompt = """你是一個健身教練，如果有個學員在做硬舉時發生了錯誤--%s，你會建議他這些動作裡的哪些%s？請回我一個格式一樣的 list of string""" % (
-            error, ' '.join(movement_list))
-    videos = api_func.get_openai_response(recommend_video_prompt)
-    print(videos)
-    # 用正則抓中括號內部的資料
-    match = re.search(r'\[.*\]', videos, re.DOTALL)
-    list_text = match.group(0)
-    # 用 ast.literal_eval 將字串轉為真正的 list of dict
-    video_list = ast.literal_eval(list_text)
-    result = []
-    for text in video_list:
-        if text in movement_list:
-            video = movement[text][0]
-            video["video_id"] = video['url'].split("v=")[-1]
-            result.append(video)
+    recommend_video_prompt = """你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--%s，你會建議我這些動作裡的哪些%s？請回我一個格式一樣的 list of string""" % (error, ' '.join(movement_list))
+    times = 0
+    while True:
+        result = []
+        try:
+            videos = api_func.get_openai_response(recommend_video_prompt)
+            print(videos)
+            # 用正則抓中括號內部的資料
+            match = re.search(r'\[.*\]', videos, re.DOTALL)
+            list_text = match.group(0)
+            # 用 ast.literal_eval 將字串轉為真正的 list of dict
+            video_list = ast.literal_eval(list_text)
+            for text in video_list:
+                if text in movement_list:
+                    video = movement[text][0]
+                    video["video_id"] = video['url'].split("v=")[-1]
+                    result.append(video)
+            break
+        except:
+            times += 1
+            if times >= 5:
+                break
+            continue
 
     # result = []
     # for video in video_list:
@@ -271,7 +296,6 @@ def read_video_list(item_id: int):
 
 @app.post("/upload_record")
 def upload_files(files: List[UploadFile] = File(...)):
-    print('upload_record')
     # 建立以 timestamp 命名的資料夾
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     folder_name = f"recording_{timestamp}"
@@ -296,6 +320,69 @@ def upload_files(files: List[UploadFile] = File(...)):
     id += 1
     return {"id": str(record_id)}
 
+@app.get("/thumbnail/{item_id}")
+def get_thumbnail(item_id: int):
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+        folder = data[str(item_id)]["recording_folder"]
+    thumbnail_path = os.path.join(folder, "thumbnail.jpg")
+    if not os.path.exists(thumbnail_path):
+        success = extract_frame(os.path.join(folder, "vision1_drawed.mp4"), 0)
+        if not success:
+            raise HTTPException(status_code=404, detail="Thumbnail not found")
+    
+    return FileResponse(thumbnail_path, media_type="image/jpeg")
+
+@app.get("/example_list")
+async def example_list():
+    with open("example_list.json", mode='r', encoding='utf-8') as json_file:
+        ids = json.load(json_file)
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
+        recordings = json.load(json_file)
+    
+    result = []
+    for item in ids:
+        if str(item) in recordings:
+            if ('error' not in recordings[str(item)]):
+                get_detection_result(item)
+                for i in range(1, 4):
+                    await get_video(item, i)
+                with open("recordings.json", mode='r', encoding='utf-8') as json_file:
+                    recordings = json.load(json_file)
+
+            thumbnail_path = os.path.join(recordings[str(item)]['recording_folder'], "thumbnail.jpg")
+            if not os.path.exists(thumbnail_path):
+                success = extract_frame(os.path.join(recordings[str(item)]['recording_folder'], "vision1_drawed.mp4"), 0)
+                if not success:
+                    continue
+                
+            result.append({
+                'id': str(item),
+                'title': os.path.basename(recordings[str(item)]['recording_folder']),
+                'total_set': len(recordings[str(item)].get('error', {})),
+                'error': [v["error"] for v in recordings[str(item)].get('error', {}).values()]
+            })
+
+    return {'result': result}
+
+def extract_frame(video_path, frame_number=0):
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        return False
+
+    # 跳到指定的幀（預設第0幀）
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+    success, frame = cap.read()
+    if success:
+        base_dir = os.path.dirname(video_path)
+        save_path = os.path.join(base_dir, "thumbnail.jpg")
+        cv2.imwrite(save_path, frame)
+        cap.release()
+    else:
+        return False
+
+    return True
 
 @app.post("/start_record")
 def start_record():
@@ -324,9 +411,14 @@ async def websocket_endpoint(websocket: WebSocket):
         # print('receive_text', count)
         # count += 1
         result = []
-        start = time.time()
+        result_ts = []
         messages = json.loads(data)
+        server_recv_ts = time.time() * 1000
+
         for message in messages:
+            if "timestamp" in message:
+                client_ts = message["timestamp"]
+                continue
             img_data = base64.b64decode(message['image'])
             nparr = np.frombuffer(img_data, np.uint8)
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -334,8 +426,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # cv2.imwrite(f'./images/{cam_index}.jpg', frame)
             human_vision.create_thread(cam_index, frame, is_recording, id)
+        print(f'create_thread: ${time.time()* 1000 - server_recv_ts}')
 
         frames, idxs = human_vision.get_frame()
+        print(f'get_frame: ${time.time()* 1000 - server_recv_ts}')
 
         for frame, idx in zip(frames, idxs):
             _, buffer = cv2.imencode('.jpg', frame)
@@ -344,8 +438,16 @@ async def websocket_endpoint(websocket: WebSocket):
                 "index": idx,
                 "image": processed_b64,
             })
-        print('274 : ', time.time() - start)
-        await websocket.send_text(json.dumps(result))
+            result_ts = {
+                'result':result,
+                "timestamp": {
+                    "timestamp": client_ts,
+                    "server_recv_ts": server_recv_ts,
+                    "server_process_end": time.time() * 1000
+                }
+            }
+        print(f'total: ${time.time()* 1000 - server_recv_ts}')
+        await websocket.send_text(json.dumps(result_ts))
 
 # @app.websocket("/ws/stream")
 # async def websocket_endpoint(websocket: WebSocket):

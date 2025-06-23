@@ -43,6 +43,9 @@ class Human_Vision:
         self.clear_runtime_data()
         self.recording_sig = False
         self.frame_count_for_detect = 0
+        self.outs = [None] * 3
+        self.bar_file = None
+        self.skeleton_files = [None] * 3
 
     def clear_runtime_data(self):
         self.threads = []

@@ -59,29 +59,31 @@ def bar_frame(frame,
         # ✅ 過濾無效骨架點 (0,0)
         kp_coords = []
         frame_data = []  # 存放該幀的骨架點
-        for idx, kp in enumerate(keypoints_xy[0]):
-            x_kp, y_kp = int(kp[0].item()), int(kp[1].item())
 
-            # ✅ 若骨架點為 (0,0)，則標記為 None（不畫）
-            if x_kp == 0 and y_kp == 0:
-                kp_coords.append(None)
-            else:
-                kp_coords.append((x_kp, y_kp))
-                cv2.circle(frame, (x_kp, y_kp), 5, (0, 255, 0), cv2.FILLED)
+        if keypoints_xy:
+            for idx, kp in enumerate(keypoints_xy[0]):
+                x_kp, y_kp = int(kp[0].item()), int(kp[1].item())
 
-            frame_data.append(f"{frame_count_for_detect},{idx},{x_kp},{y_kp}")
+                # ✅ 若骨架點為 (0,0)，則標記為 None（不畫）
+                if x_kp == 0 and y_kp == 0:
+                    kp_coords.append(None)
+                else:
+                    kp_coords.append((x_kp, y_kp))
+                    cv2.circle(frame, (x_kp, y_kp), 5, (0, 255, 0), cv2.FILLED)
 
-        # ✅ 繪製骨架連線，若其中一個點為 None，則不畫線
-        for start_idx, end_idx in skeleton_connections:
-            if start_idx < len(kp_coords) and end_idx < len(kp_coords):
-                if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
-                    continue
-                cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
-                        (0, 255, 255), 2)
+                frame_data.append(f"{frame_count_for_detect},{idx},{x_kp},{y_kp}")
 
-        # ✅ **將骨架點資訊寫入 `txt_file`**
-        if skeleton_file is not None:
-            skeleton_file.write("\n".join(frame_data) + "\n")
+            # ✅ 繪製骨架連線，若其中一個點為 None，則不畫線
+            for start_idx, end_idx in skeleton_connections:
+                if start_idx < len(kp_coords) and end_idx < len(kp_coords):
+                    if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
+                        continue
+                    cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
+                            (0, 255, 255), 2)
+
+            # ✅ **將骨架點資訊寫入 `txt_file`**
+            if skeleton_file is not None:
+                skeleton_file.write("\n".join(frame_data) + "\n")
 
     else:
         # ❌ **沒有偵測到人，寫入 "no detection"**
@@ -125,29 +127,30 @@ def bone_frame(frame,
         # ✅ 過濾無效骨架點 (0,0)
         kp_coords = []
         frame_data = []  # 存放該幀的骨架點
-        for idx, kp in enumerate(keypoints_xy[0]):
-            x_kp, y_kp = int(kp[0].item()), int(kp[1].item())
+        if keypoints_xy:
+            for idx, kp in enumerate(keypoints_xy[0]):
+                x_kp, y_kp = int(kp[0].item()), int(kp[1].item())
 
-            # ✅ 若骨架點為 (0,0)，則標記為 None（不畫）
-            if x_kp == 0 and y_kp == 0:
-                kp_coords.append(None)
-            else:
-                kp_coords.append((x_kp, y_kp))
-                cv2.circle(frame, (x_kp, y_kp), 5, (0, 255, 0), cv2.FILLED)
+                # ✅ 若骨架點為 (0,0)，則標記為 None（不畫）
+                if x_kp == 0 and y_kp == 0:
+                    kp_coords.append(None)
+                else:
+                    kp_coords.append((x_kp, y_kp))
+                    cv2.circle(frame, (x_kp, y_kp), 5, (0, 255, 0), cv2.FILLED)
 
-            frame_data.append(f"{frame_count_for_detect},{idx},{x_kp},{y_kp}")
+                frame_data.append(f"{frame_count_for_detect},{idx},{x_kp},{y_kp}")
 
-        # ✅ 繪製骨架連線，若其中一個點為 None，則不畫線
-        for start_idx, end_idx in skeleton_connections:
-            if start_idx < len(kp_coords) and end_idx < len(kp_coords):
-                if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
-                    continue
-                cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
-                        (0, 255, 255), 2)
+            # ✅ 繪製骨架連線，若其中一個點為 None，則不畫線
+            for start_idx, end_idx in skeleton_connections:
+                if start_idx < len(kp_coords) and end_idx < len(kp_coords):
+                    if kp_coords[start_idx] is None or kp_coords[end_idx] is None:
+                        continue
+                    cv2.line(frame, kp_coords[start_idx], kp_coords[end_idx],
+                            (0, 255, 255), 2)
 
-        # ✅ **將骨架點資訊寫入 `txt_file`**
-        if txt_file is not None:
-            txt_file.write("\n".join(frame_data) + "\n")
+            # ✅ **將骨架點資訊寫入 `txt_file`**
+            if txt_file is not None:
+                txt_file.write("\n".join(frame_data) + "\n")
 
     else:
         # ❌ **沒有偵測到人，寫入 "no detection"**
