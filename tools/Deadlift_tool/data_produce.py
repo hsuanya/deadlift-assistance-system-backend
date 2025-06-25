@@ -106,44 +106,39 @@ def save_to_config(title, y_label, y_data, output_file, skeleton_frames):
     print(f"✅ 数据已存入 {config_path}")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('dir', type=str)
-parser.add_argument('--out', type=str)
-args = parser.parse_args()
-dir = args.dir
-out = args.out
-skeleton_file_path = os.path.join(dir,
-                                  'interpolated_yolo_skeleton.txt')
-barbell_file_path = os.path.join(dir, 'yolo_coordinates_interpolated.txt')
+def run_data_produce(dir):
+    skeleton_file_path = os.path.join(dir,
+                                    'interpolated_skeleton_left-front.txt')
+    out = os.path.join(dir, 'config')
 
-skeleton_data = read_skeleton_data(skeleton_file_path)
-skeleton_frames, left_knee_angles, left_hip_angles, body_lengths = calculate_angles_and_length(
-    skeleton_data)
-knee_to_hip_ratios = [
-    left_knee / left_hip if left_hip != 0 else 0
-    for left_knee, left_hip in zip(left_knee_angles, left_hip_angles)
-]
+    skeleton_data = read_skeleton_data(skeleton_file_path)
+    skeleton_frames, left_knee_angles, left_hip_angles, body_lengths = calculate_angles_and_length(
+        skeleton_data)
+    knee_to_hip_ratios = [
+        left_knee / left_hip if left_hip != 0 else 0
+        for left_knee, left_hip in zip(left_knee_angles, left_hip_angles)
+    ]
 
-save_to_config(title='Left Knee Angle Over Time',
-               y_label='Angle (degrees)',
-               y_data=left_knee_angles,
-               output_file=os.path.join(out, 'Knee_Angle.json'),
-               skeleton_frames=skeleton_frames)
+    save_to_config(title='Left Knee Angle Over Time',
+                y_label='Angle (degrees)',
+                y_data=left_knee_angles,
+                output_file=os.path.join(out, 'Knee_Angle.json'),
+                skeleton_frames=skeleton_frames)
 
-save_to_config(title='Left Hip Angle Over Time',
-               y_label='Angle (degrees)',
-               y_data=left_hip_angles,
-               output_file=os.path.join(out, 'Hip_Angle.json'),
-               skeleton_frames=skeleton_frames)
+    save_to_config(title='Left Hip Angle Over Time',
+                y_label='Angle (degrees)',
+                y_data=left_hip_angles,
+                output_file=os.path.join(out, 'Hip_Angle.json'),
+                skeleton_frames=skeleton_frames)
 
-save_to_config(title='Knee-to-Hip Angle Ratio Over Time',
-               y_label='Ratio (Knee / Hip)',
-               y_data=knee_to_hip_ratios,
-               output_file=os.path.join(out, 'Knee_to_Hip.json'),
-               skeleton_frames=skeleton_frames)
+    save_to_config(title='Knee-to-Hip Angle Ratio Over Time',
+                y_label='Ratio (Knee / Hip)',
+                y_data=knee_to_hip_ratios,
+                output_file=os.path.join(out, 'Knee_to_Hip.json'),
+                skeleton_frames=skeleton_frames)
 
-save_to_config(title='Body Length Over Time',
-               y_label='Length',
-               y_data=body_lengths,
-               output_file=os.path.join(out, 'Body_Length.json'),
-               skeleton_frames=skeleton_frames)
+    save_to_config(title='Body Length Over Time',
+                y_label='Length',
+                y_data=body_lengths,
+                output_file=os.path.join(out, 'Body_Length.json'),
+                skeleton_frames=skeleton_frames)

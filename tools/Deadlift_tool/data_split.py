@@ -7,10 +7,12 @@ import math
 import os
 import numpy as np
 import pandas as pd
-import argparse
 import glob
 import re, json
 
+def extract_number(filename):
+    match = re.search(r'(\d+)', filename)
+    return match.group(1) if match else None
 
 def read_skeleton_data(filename):
     data = {}
@@ -56,10 +58,10 @@ def calculate_angle(p1, p2, p3):
 
 
 def find_valleys(smoothed_angles,
-                 peaks,
-                 search_range=10,
-                 min_valley_value=170,
-                 min_depth=10):
+                peaks,
+                search_range=10,
+                min_valley_value=170,
+                min_depth=10):
     valleys = []
     valleys1 = []
 
@@ -80,7 +82,7 @@ def find_valleys(smoothed_angles,
 
         # 檢查條件：波谷值小於 170，且谷底夠深 (峰值 - 谷底 >= min_depth)
         if left_min_value < min_valley_value and (peak_value -
-                                                  left_min_value) >= min_depth:
+                                                left_min_value) >= min_depth:
             valleys.append(left_min_index)
 
         if right_min_value < min_valley_value and (
@@ -213,12 +215,10 @@ def split_skeleton_data(original_skeleton_path, output_folder, valleys,
                     continue
 
         print(f"骨架數據儲存: {output_skeleton_path}（Y 變化範圍: {x_range:.2f}）")
+    print("所有left-front骨架數據處理完成！")
 
-    print("所有骨架數據處理完成！")
 
-
-def split_bar_data(original_bar_path, output_folder, valleys, valleys1,
-                   yolo_file):
+def split_bar_data(original_bar_path, output_folder, valleys, valleys1):
     """
     根據 valleys (黃色谷底) 和 valleys1 (綠色谷底) 分割槓鈴數據，
     **只存 X 座標變化超過 20 的片段**，如果變化 ≤ 20，則不存。
@@ -228,7 +228,7 @@ def split_bar_data(original_bar_path, output_folder, valleys, valleys1,
         lines = file.readlines()
 
     # 讀取 yolo 數據
-    yolo_data = read_yolo_data(yolo_file)
+    yolo_data = read_yolo_data(original_bar_path)
 
     for i, (start_frame, end_frame) in enumerate(zip(valleys, valleys1)):
         if start_frame >= end_frame:
@@ -269,7 +269,7 @@ def split_bar_data(original_bar_path, output_folder, valleys, valleys1,
     print("所有槓鈴數據處理完成！")
 
 
-def plot_metrics_in_tkinter():
+def find_valley(frames, left_knee_angles):
     global valleys, valleys1
 
     # 圖表初始化
@@ -339,7 +339,7 @@ def calculate_angle1(x1, y1, x2, y2, x3, y3):
         return 0.0
 
 
-def process_file(input_file, output_file):
+def left_front_vision_extract_feartures(input_file, output_file):
     joint_data = {}
 
     try:
@@ -365,24 +365,22 @@ def process_file(input_file, output_file):
 
                     hip_angle = calculate_angle1(x6, y6, x12, y12, x14, y14)
                     knee_angle = calculate_angle1(x12, y12, x14, y14, x16, y16)
-                    body_length = calculate_distance(x6, y6, x12, y12)
                     knee_hip_ratio = knee_angle / hip_angle if hip_angle != 0 else 0
 
                     f_out.write(
-                        f"{frame},{hip_angle:.2f},{knee_angle:.2f},{body_length:.2f},{knee_hip_ratio:.2f}\n"
+                        f"{frame},{hip_angle:.2f},{knee_angle:.2f},{knee_hip_ratio:.2f}\n"
                     )
     except Exception as e:
         print(f"處理檔案時發生錯誤：{input_file}，錯誤訊息：{e}")
 
-
-def process_all_folders(skeleton_path):
+def process_left_front_vision(skeleton_path):
     skeleton_txts = glob.glob(os.path.join(skeleton_path, '*.txt'))
     for txt in skeleton_txts:
         match = re.search(r'skeleton_(\d+)', txt)
         if match:
             # 在上層資料夾建立 processed 資料夾
             parent_folder = os.path.dirname(skeleton_path)
-            output_folder = os.path.join(parent_folder, "angle")
+            output_folder = os.path.join(parent_folder, "angle_left_front")
             os.makedirs(output_folder, exist_ok=True)
 
             # 輸出檔案路徑
@@ -390,11 +388,123 @@ def process_all_folders(skeleton_path):
                 output_folder,
                 f"angle_{os.path.basename(skeleton_path)}_{int(match.group(1))}.txt"
             )
-            process_file(txt, output_file)
-            print(f"已處理檔案：{txt}，結果保存至：{output_file}")
+            left_front_vision_extract_feartures(txt, output_file)
         else:
             print("File no matching.")
+    print(f"✅ 已處理：left-front vision feartures extraction")
+            
+def bar_vision_extract_feartures(skeleton_file, bar_file, output_file):
+    try:
+        with open(skeleton_file, 'r') as skel_f, open(bar_file, 'r') as bar_f:
+            skel_lines = skel_f.readlines()
+            bar_lines = bar_f.readlines()
 
+            # 建立 frame 對應的 keypoint 字典 {frame: {index: (x, y)}}
+            frame_keypoints = {}
+            for line in skel_lines:
+                parts = line.strip().split(',')
+                if len(parts) >= 4:
+                    try:
+                        frame = int(float(parts[0]))
+                        index = int(float(parts[1]))
+                        x = float(parts[2])
+                        y = float(parts[3])
+                        if frame not in frame_keypoints:
+                            frame_keypoints[frame] = {}
+                        frame_keypoints[frame][index] = (x, y)
+                    except ValueError:
+                        continue
+
+            with open(output_file, 'w') as out_f:
+                for i in range(min(len(bar_lines), len(frame_keypoints))):
+                    bar_parts = bar_lines[i].strip().split(',')
+                    if len(bar_parts) < 2:
+                        continue
+
+                    try:
+                        # 嘗試對應同一個 frame（假設每一行對應一個 frame）
+                        frame = list(sorted(frame_keypoints.keys()))[i]
+                        keypoints = frame_keypoints[frame]
+
+                        if 5 in keypoints and 6 in keypoints and 12 in keypoints:
+                            shoulder_x = keypoints[5][0]
+                            bar_x = float(bar_parts[1])
+                            diff = shoulder_x - bar_x
+
+                            x6, y6 = keypoints[6]
+                            x12, y12 = keypoints[12]
+                            dist_6_12 = math.sqrt((x12 - x6) ** 2 + (y12 - y6) ** 2)
+
+                            out_f.write(f"{frame},{diff:.4f},{dist_6_12:.4f}\n")
+
+                    except ValueError:
+                        continue
+
+    except Exception as e:
+        print(f"處理檔案錯誤：{skeleton_file}，錯誤：{e}")
+        
+def process_bar_vision(skeleton_path):
+    parent_folder = os.path.dirname(skeleton_path)
+    bar_folder = os.path.join(parent_folder, "bar")
+    output_folder = os.path.join(parent_folder, "angle_bar")
+    os.makedirs(output_folder, exist_ok=True)
+
+    skeleton_txts = glob.glob(os.path.join(skeleton_path, '*.txt'))
+    for skeleton_txt in skeleton_txts:
+        match = re.search(r'skeleton_(\d+)', skeleton_txt)
+        if match:
+            bar_file = os.path.join(bar_folder, f"bar_{int(match.group(1))}.txt")
+            output_file = os.path.join(
+                output_folder, 
+                f"angle_{os.path.basename(skeleton_path)}_{int(match.group(1))}.txt"
+            )
+            bar_vision_extract_feartures(skeleton_txt, bar_file, output_file)
+        else:
+            print(f"❌ 缺少 bar 對應檔案：bar_{int(match.group(1))}.txt")
+            return
+    print(f"✅ 已處理：bar vision feartures extraction")
+    
+def left_back_vision_extract_feartures(input_file, output_file):
+    joint_data = {}
+    try:
+        with open(input_file, 'r') as f:
+            for line in f:
+                frame, index, x, y = map(float, line.strip().split(','))
+                frame = int(frame)
+                index = int(index)
+                if frame not in joint_data:
+                    joint_data[frame] = {}
+                joint_data[frame][index] = (x, y)
+
+        with open(output_file, 'w') as f_out:
+            for frame, joints in sorted(joint_data.items()): 
+                if all(idx in joints for idx in [5, 9, 11, 13, 15]):
+                    x6, y6 = joints[5]
+                    x12, y12 = joints[11]
+                    x14, y14 = joints[13]
+                    x16, y16 = joints[15]
+
+                    hip_angle = calculate_angle1(x6, y6, x12, y12, x14, y14)
+                    knee_angle = calculate_angle1(x12, y12, x14, y14, x16, y16)
+
+                    f_out.write(f"{frame},{hip_angle:.2f},{knee_angle:.2f}\n")
+    except Exception as e:
+        print(f"處理檔案時發生錯誤：{input_file}，錯誤訊息：{e}")
+        
+def process_left_back_vision(skeleton_path):
+    skeleton_txts = glob.glob(os.path.join(skeleton_path, '*.txt'))
+    for txt in skeleton_txts:
+        match = re.search(r'skeleton_(\d+)', txt)
+        parent_folder = os.path.dirname(skeleton_path)
+        output_folder = os.path.join(parent_folder, "angle_left_back")
+        os.makedirs(output_folder, exist_ok=True)
+
+        output_file = os.path.join(
+            output_folder, 
+            f"angle_{os.path.basename(skeleton_path)}_{int(match.group(1))}.txt")
+        
+        left_back_vision_extract_feartures(txt, output_file)
+    print(f"✅ 已處理：left-back vision feartures extraction")
 
 def linear_interpolate_fixed_length(df, frame_col=0, target_length=110):
     """對 DataFrame 進行線性內插，使其長度固定為 target_length。"""
@@ -406,64 +516,71 @@ def linear_interpolate_fixed_length(df, frame_col=0, target_length=110):
     return df
 
 
-def merge_and_interpolate(angle_path,
-                          bar_path,
-                          output_path,
-                          target_length=110):
-    """合併 angle 和 bar 資料夾內的檔案，並進行線性內插。"""
+
+def merge_and_interpolate(angle_left_front_path, bar_path, angle_bar_path, angle_left_back_path, output_path,
+                        target_length=110):
+    """合併 angle、bar、angle_vision1 和 angle_vision5 的檔案，並進行線性內插。"""
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    angle_files = sorted(
-        [f for f in os.listdir(angle_path) if f.startswith("angle_skeleton_")])
-    bar_files = sorted(
-        [f for f in os.listdir(bar_path) if f.startswith("bar_")])
+    angle_files = sorted([f for f in os.listdir(angle_left_front_path) if f.startswith("angle_skeleton_")])
+    bar_files = sorted([f for f in os.listdir(bar_path) if f.startswith("bar_")])
+    vision1_files = sorted([f for f in os.listdir(angle_bar_path) if f.startswith("angle_skeleton_")])
+    vision5_files = sorted([f for f in os.listdir(angle_left_back_path) if f.startswith("angle_skeleton_")])
 
-    # 確保檔案名稱匹配
+    # 建立檔案名稱對應字典（使用最後一段名稱作為 key）
     angle_dict = {f.split("_")[-1]: f for f in angle_files}
     bar_dict = {f.split("_")[-1]: f for f in bar_files}
+    vision1_dict = {f.split("_")[-1]: f for f in vision1_files}
+    vision5_dict = {f.split("_")[-1]: f for f in vision5_files}
 
-    common_keys = set(angle_dict.keys()) & set(bar_dict.keys())  # 找到對應的檔案
-    print(angle_dict)
-    print(bar_dict)
+    # 找出四者都有的檔案
+    common_keys = set(angle_dict.keys()) & set(bar_dict.keys()) & set(vision1_dict.keys()) & set(vision5_dict.keys())
+
     for key in sorted(common_keys):
         angle_file = angle_dict[key]
         bar_file = bar_dict[key]
+        vision1_file = vision1_dict[key]
+        vision5_file = vision5_dict[key]
 
         try:
-            angle_df = pd.read_csv(os.path.join(angle_path, angle_file),
-                                   header=None)
+            angle_df = pd.read_csv(os.path.join(angle_left_front_path, angle_file), header=None)
             bar_df = pd.read_csv(os.path.join(bar_path, bar_file), header=None)
+            vision1_df = pd.read_csv(os.path.join(angle_bar_path, vision1_file), header=None)
+            vision5_df = pd.read_csv(os.path.join(angle_left_back_path, vision5_file), header=None)
 
             # 選擇需要的欄位
-            angle_df = angle_df.iloc[:, [0, 1, 2,
-                                         3]]  # 包含 frame_col (假設是第 0 欄)
-            bar_df = bar_df.iloc[:, [1, 2]]
+            angle_df = angle_df.iloc[:, [0, 1, 2]]  # frame + 2欄
+            bar_df = bar_df.iloc[:, [1, 2]]         # 2欄（不含 frame）
+            vision1_df = vision1_df.iloc[:, [1, 2]] # 2欄（不含 frame）
+            vision5_df = vision5_df.iloc[:, [1, 2]] # 2欄（不含 frame）
 
-            merged_df = pd.concat([angle_df, bar_df], axis=1)
+            # 合併所有欄位
+            merged_df = pd.concat([angle_df, bar_df, vision1_df, vision5_df], axis=1)
 
-            # 進行內插，確保 frame_col 為索引
-            merged_df = linear_interpolate_fixed_length(
-                merged_df, frame_col=0, target_length=target_length)
+            # 進行內插
+            merged_df = linear_interpolate_fixed_length(merged_df, frame_col=0, target_length=target_length)
 
+            # 輸出
             output_file = os.path.join(output_path, f"merged_{key}")
-            merged_df.to_csv(output_file,
-                             index=False,
-                             header=False,
-                             float_format="%.2f")
+            merged_df.to_csv(output_file, index=False, header=False, float_format="%.4f")
 
-            print(f"Processed: {angle_file} + {bar_file} -> {output_file}")
+            print(f"Processed: {angle_file}, {bar_file}, {vision1_file}, {vision5_file} -> {output_file}")
 
         except Exception as e:
-            print(f"Error processing {angle_file} and {bar_file}: {e}")
+            print(f"Error processing files for key {key}: {e}")
 
 
-def process_all_folders1(path, target_length=110):
-    angle_path = os.path.join(path, "angle")
+def process_data(path, target_length=110):
+    angle_path = os.path.join(path, "angle_left_front")
     bar_path = os.path.join(path, "bar")
+    vision1_path = os.path.join(path, "angle_bar")
+    vision5_path = os.path.join(path, "angle_left_back")
     output_path = os.path.join(path, "out")
-    print(f"Processing {path} ...")
-    merge_and_interpolate(angle_path, bar_path, output_path, target_length)
+
+    if all(os.path.exists(p) for p in [angle_path, bar_path, vision1_path, vision5_path]):
+        print(f"Processing {path} ...")
+        merge_and_interpolate(angle_path, bar_path, vision1_path, vision5_path, output_path, target_length)
 
 
 def remove_outliers(df):
@@ -476,8 +593,8 @@ def remove_outliers(df):
 
     # 過濾掉極端值，超過範圍的值用均值取代
     df_filtered = df.mask((df < lower_bound) | (df > upper_bound),
-                          mean,
-                          axis=1)
+                            mean,
+                            axis=1)
     return df_filtered
 
 
@@ -498,9 +615,9 @@ def process_filtered_files(path):
                 df_filtered = remove_outliers(df)  # 移除極端值
 
                 df_filtered.to_csv(output_file,
-                                   index=False,
-                                   header=False,
-                                   float_format="%.4f")
+                                    index=False,
+                                    header=False,
+                                    float_format="%.4f")
                 # print(f"Processed Filtered: {input_file} -> {output_file}")
 
             except Exception as e:
@@ -530,9 +647,9 @@ def process_delta_files(path):
                 df_diff = compute_differences(df)  # 計算變化量
 
                 df_diff.to_csv(output_file,
-                               index=False,
-                               header=False,
-                               float_format="%.4f")
+                                index=False,
+                                header=False,
+                                float_format="%.4f")
                 # print(f"Processed Δ: {input_file} -> {output_file}")
 
             except Exception as e:
@@ -562,9 +679,9 @@ def process_second_differences(path):
                 df_delta2 = compute_second_differences(df)  # 計算變化量的變化量
 
                 df_delta2.to_csv(output_file,
-                                 index=False,
-                                 header=False,
-                                 float_format="%.4f")
+                                    index=False,
+                                    header=False,
+                                    float_format="%.4f")
                 # print(f"Processed Δ²: {input_file} -> {output_file}")
 
             except Exception as e:
@@ -576,7 +693,7 @@ def compute_delta_ratio(data):
     epsilon = 1e-6  # 避免 A 為 0
     delta_ratio = (data[1:] - data[:-1]) / (data[:-1] + epsilon)
     delta_ratio = np.vstack([np.zeros((1, data.shape[1])),
-                             delta_ratio])  # 第一行補 0
+                            delta_ratio])  # 第一行補 0
     return delta_ratio
 
 
@@ -597,9 +714,9 @@ def process_delta_ratio(path,
                     df.to_numpy(dtype=np.float32))
                 pd.DataFrame(delta_ratio_data).to_csv(os.path.join(
                     output_path, file),
-                                                      index=False,
-                                                      header=False,
-                                                      float_format="%.6f")
+                    index=False,
+                    header=False,
+                    float_format="%.6f")
                 # print(f"Processed delta ratio: {file_path} -> {output_path}/{file}")
 
             except Exception as e:
@@ -633,9 +750,9 @@ def process_zscore_from_merged(path):
                 df_zscore = z_score_normalization(df)  # 計算 Z-score 標準化
 
                 df_zscore.to_csv(output_file,
-                                 index=False,
-                                 header=False,
-                                 float_format="%.4f")
+                                index=False,
+                                header=False,
+                                float_format="%.4f")
                 # print(f"Processed Z-score: {input_file} -> {output_file}")
 
             except Exception as e:
@@ -668,9 +785,9 @@ def process_normalization(path, input_folder, output_folder):
                 df = pd.read_csv(file_path, header=None)
                 norm_data = normalize_data(df.to_numpy(dtype=np.float32))
                 pd.DataFrame(norm_data).to_csv(os.path.join(output_path, file),
-                                               index=False,
-                                               header=False,
-                                               float_format="%.6f")
+                                                index=False,
+                                                header=False,
+                                                float_format="%.6f")
                 # print(f"Normalized: {file_path} -> {output_path}/{file}")
 
             except Exception as e:
@@ -690,45 +807,60 @@ def save_valleys(path):
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
+def run_data_split(path):
+    feartures = {}
+    visions = ['bar', 'left-back', 'left-front']
+    
+    bar_file_path = os.path.join(path, 'coordinates_interpolated.txt')
+    split_bar_folder = os.path.join(path, 'bar')
 
-# 指定最上層資料夾
-parser = argparse.ArgumentParser()
-parser.add_argument('dir', type=str)
-args = parser.parse_args()
-path = args.dir
+    print('Reading skeleton data...')
+    # 讀取數據
+    for vision in visions:
+        # 設定檔案路徑
+        file = os.path.join(path, f'interpolated_skeleton_{vision}.txt')
+        skeleton_data = read_skeleton_data(file)
+        frames, left_knee_angles = calculate_angles(skeleton_data)
+        feartures[vision] = {
+            'frames': frames,
+            'skeleton': skeleton_data,
+            'knee_angles': left_knee_angles
+        }
+        
+        
+    print('Find valleys...')
+    find_valley(feartures['bar']['frames'], feartures['bar']['knee_angles'])
+    save_valleys(path)
+    
+    print('splitting data...')
+    for vision in visions:
+        file = os.path.join(path, f'interpolated_skeleton_{vision}.txt')
+        folder = os.path.join(path, f'skeleton_{vision}')
+        split_skeleton_data(file, folder, valleys, valleys1,
+                            bar_file_path)
+        if vision == 'bar':
+            process_bar_vision(folder)
+        elif vision == 'left-front':
+            process_left_front_vision(folder)
+        elif vision == 'left-back':
+            process_left_back_vision(folder)
+        
+    split_bar_data(bar_file_path, split_bar_folder, valleys, valleys1)
 
-# 設定檔案路徑
-skeleton_file_path = os.path.join(path, 'interpolated_yolo_skeleton.txt')
-bar_file_path = os.path.join(path, 'yolo_coordinates_interpolated.txt')
-output_folder = os.path.join(path, 'clips')
-output_folder1 = os.path.join(path, 'skeleton')
-output_folder2 = os.path.join(path, 'bar')
-
-# 讀取數據
-skeleton_data = read_skeleton_data(skeleton_file_path)
-frames, left_knee_angles = calculate_angles(skeleton_data)
-# 執行切割
-plot_metrics_in_tkinter()
-save_valleys(path)
-split_skeleton_data(skeleton_file_path, output_folder1, valleys, valleys1,
-                    bar_file_path)
-split_bar_data(bar_file_path, output_folder2, valleys, valleys1, bar_file_path)
-
-process_all_folders(output_folder1)
-# Example usage
-process_all_folders1(path, target_length=110)
-process_filtered_files(path)
-process_delta_files(path)
-process_second_differences(path)
-process_delta_ratio(path)
-process_zscore_from_merged(path)
-# 處理 delta 和 delta2
-process_normalization(path, "data/filtered", "data_norm/filtered_norm")
-process_normalization(path, "data/filtered_delta",
-                      "data_norm/filtered_delta_norm")
-process_normalization(path, "data/filtered_delta2",
-                      "data_norm/filtered_delta2_norm")
-process_normalization(path, "data/filtered_zscore",
-                      "data_norm/filtered_zscore_norm")
-process_normalization(path, "data/filtered_delta_square",
-                      "data_norm/filtered_delta_square_norm")
+    # Example usage
+    process_data(path, target_length=110)
+    process_filtered_files(path)
+    process_delta_files(path)
+    process_second_differences(path)
+    process_delta_ratio(path)
+    process_zscore_from_merged(path)
+    # 處理 delta 和 delta2
+    process_normalization(path, "data/filtered", "data_norm/filtered_norm")
+    process_normalization(path, "data/filtered_delta",
+                        "data_norm/filtered_delta_norm")
+    process_normalization(path, "data/filtered_delta2",
+                        "data_norm/filtered_delta2_norm")
+    process_normalization(path, "data/filtered_zscore",
+                        "data_norm/filtered_zscore_norm")
+    process_normalization(path, "data/filtered_delta_square",
+                        "data_norm/filtered_delta_square_norm")
