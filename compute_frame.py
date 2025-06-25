@@ -8,7 +8,13 @@ import cv2
 import numpy as np
 from datetime import datetime
 import json
-
+from tools.Deadlift_tool.interpolate import run_interpolation
+from tools.Deadlift_tool.interpolate import run_interpolation
+from tools.Deadlift_tool.bar_data_produce import run_bar_data_produce
+from tools.Deadlift_tool.data_produce import run_data_produce
+from tools.Deadlift_tool.data_split import run_data_split
+from tools.Deadlift_tool.predict import run_predict
+from tools.trajectory import plot_trajectory
 
 class Human_Vision:
     def __init__(self):
@@ -169,19 +175,14 @@ class Human_Vision:
 def predict(folder):
     os.makedirs(f'{folder}/config', exist_ok=True)
     # 對槓端及骨架做內插
-    os.system(f'python ./tools/Deadlift_tool/interpolate.py {folder}')
+    run_interpolation(folder)
     # bar
-    os.system(
-        f'python ./tools/Deadlift_tool/bar_data_produce.py {folder} --out {folder}/config --sport deadlift'
-    )
+    run_bar_data_produce(folder, sport='deadlift')
     # angle
-    os.system(
-        f'python ./tools/Deadlift_tool/data_produce.py {folder} --out {folder}/config'
-    )
+    run_data_produce(folder)
     # split data
-    os.system(f'python ./tools/Deadlift_tool/data_split.py {folder}')
+    run_data_split(folder)
     # modle predict
-    os.system(
-        f'python ./tools/Deadlift_tool/predict.py {folder} --out {folder}/config'
-    )
-    os.system(f'python ./tools/trajectory.py {folder}')
+    run_predict(folder)
+    
+    plot_trajectory(folder)

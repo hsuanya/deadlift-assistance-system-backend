@@ -2,16 +2,6 @@ import cv2
 import os
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('dir',type=str)
-args = parser.parse_args()
-dir = args.dir
-
-# 載入影片和座標
-video_path = os.path.join(dir, 'vision1.avi')
-coordinates_path = os.path.join(dir, 'yolo_coordinates_interpolated.txt')
-output_path = os.path.join(dir, 'vision1_drawed.avi')
-
 def trajectory(video_path, coordinates_path, output_path):
     # 解析座標檔案
     coordinates = {}
@@ -70,4 +60,10 @@ def trajectory(video_path, coordinates_path, output_path):
     out.release()
     print("output_path：", output_path)
 
-trajectory(video_path, coordinates_path, output_path)
+
+def plot_trajectory(folder):
+    # 載入影片和座標
+    video_path = os.path.join(folder, 'vision1.avi')
+    coordinates_path = os.path.join(folder, 'coordinates_interpolated.txt')
+    output_path = os.path.join(folder, 'vision1_drawed.avi')
+    trajectory(video_path, coordinates_path, output_path)

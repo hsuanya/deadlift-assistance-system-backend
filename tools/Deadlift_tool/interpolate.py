@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
 import numpy as np
-import matplotlib.pyplot as plt
-import argparse
 import os
 ###寫一個把三次內插整合在一起的
 #第一次:把mediapipe裡面沒偵測到的先內插補植
@@ -11,9 +9,11 @@ import os
 #第三次:把mediapipe資料的長度對齊yolo的長度
 
 ###處理mediapipe資料的no detection
-def interpolate_landmarks(input_file, output_file):
+def interpolate_landmarks(input_file):
     # 讀取TXT文件
     df = pd.read_csv(input_file, header=None, names=["frame", "landmark", "x", "y"])
+    if df.empty:
+        raise ValueError(f"The input file '{input_file}' is empty or contains no valid data.")
 
     # 將 'no detection' 替換為 NaN
     df.replace('no detection', np.nan, inplace=True)
@@ -73,30 +73,11 @@ def interpolate_landmarks(input_file, output_file):
 
     # 將結果轉換為 DataFrame
     output_df = pd.DataFrame(interpolated_data, columns=["frame", "landmark", "x", "y"])
-
-    # 將結果保存到新的TXT文件，不輸出索引與標題行
-    output_df.to_csv(output_file, index=False, header=False)
-
-    print(f"已完成內插並將結果儲存至 {output_file}")
-
-parser = argparse.ArgumentParser()
-parser.add_argument('dir',type=str)
-args = parser.parse_args()
-dir = args.dir
-
-# 設定要處理的文件
-input_files = [os.path.join(dir, 'yolo_skeleton.txt')]  # 請替換為你的輸入檔名
-output_files = [os.path.join(dir, 'yolo_skeleton_1st_interp.txt')]  # 對應的輸出檔名
-
-# 對每個文件進行內插處理
-for input_file, output_file in zip(input_files, output_files):
-    interpolate_landmarks(input_file, output_file)
+    return output_df.to_numpy()
 
 ####處理yolo的no detection並且內插
-
-
-def load_yolo_data(filename):
-    # 讀取 YOLO 資料
+def load_bar_data(filename):
+    # 讀取 BAR 資料
     data = []
     with open(filename, 'r') as f:
         for line in f:
@@ -149,26 +130,7 @@ def interpolate_missing_detections(yolo_data):
     interpolated_data = np.column_stack((all_frames, padded_features[0], padded_features[1], padded_features[2], padded_features[3]))
     return interpolated_data
 
-# 載入 YOLO 資料
-yolo_data = load_yolo_data(os.path.join(dir, 'yolo_coordinates.txt'))
 
-# 內插 YOLO 中的 "no detection" 資料
-interpolated_yolo_data = interpolate_missing_detections(yolo_data)
-yolo_interpolated_path = os.path.join(dir, 'yolo_coordinates_interpolated.txt')
-# 將結果保存到新的檔案，第一列為整數，其他為浮點數
-np.savetxt(yolo_interpolated_path, interpolated_yolo_data, delimiter=',', fmt='%d,%.8f,%.8f,%.8f,%.8f')
-
-print("YOLO 'no detection' frames have been interpolated and saved to 'yolo_coordinates_interpolated.txt'.")
-
-####這邊先把mediapipe資料內插成yolo的數量，因yolo資料量通常較長
-
-# 讀取 YOLO 的資料
-yolo_data = np.loadtxt(yolo_interpolated_path, delimiter=',')
-yolo_frames = yolo_data[:, 0]  # frame numbers
-
-# 讀取第一份 MediaPipe 的資料
-mediapipe_data_1 = np.loadtxt(os.path.join(dir, 'yolo_skeleton_1st_interp.txt'), delimiter=',')
-landmarks_1 = np.unique(mediapipe_data_1[:, 1])  # unique landmark numbers
 
 def interpolate_mediapipe(yolo_frames, mediapipe_data, landmarks):
     interpolated_data = []
@@ -214,11 +176,37 @@ def interpolate_mediapipe(yolo_frames, mediapipe_data, landmarks):
     
     return interpolated_data
 
-# 處理第一份 MediaPipe 資料
-interpolated_data_1 = interpolate_mediapipe(yolo_frames, mediapipe_data_1, landmarks_1)
 
-output_mediapipe = os.path.join(dir, 'interpolated_yolo_skeleton.txt')
-# 將內插後的資料寫入 TXT 檔案
-with open(output_mediapipe, 'w') as f:
-    for entry in interpolated_data_1:
-        f.write(f"{int(entry[0])},{int(entry[1])},{int(entry[2])},{int(entry[3])}\n")
+
+def run_interpolation(dir):
+    # 載入 bar 資料
+    bar_data = load_bar_data(os.path.join(dir, 'coordinates.txt'))
+
+    # 內插 bar 中的 "no detection" 資料
+    interpolated_bar_data = interpolate_missing_detections(bar_data)
+    bar_interpolated_path = os.path.join(dir, 'coordinates_interpolated.txt')
+    # 將結果保存到新的檔案，第一列為整數，其他為浮點數
+    np.savetxt(bar_interpolated_path, interpolated_bar_data, delimiter=',', fmt='%d,%.8f,%.8f,%.8f,%.8f')
+
+    print("BAR 'no detection' frames have been interpolated and saved to 'coordinates_interpolated.txt'.")
+    visions = ['bar', 'left-front', 'left-back']
+
+    # 設定要處理的文件
+    for vision in visions:
+        input_file = os.path.join(dir, f'skeleton_{vision}.txt')  # 請替換為你的輸入檔名
+        interpolated_skeleton = interpolate_landmarks(input_file)
+        ####這邊先把skeleton資料內插成bar的數量，因bar資料量通常較長
+
+        # 讀取 bar 的資料
+        bar_frames = interpolated_bar_data[:, 0]  # frame numbers
+
+        # 讀取第一份 skeleton 的資料
+        landmarks = np.unique(interpolated_skeleton[:, 1])  # unique landmark numbers
+        # 處理第一份 skeleton 資料
+        interpolated_data = interpolate_mediapipe(bar_frames, interpolated_skeleton, landmarks)
+
+        output_mediapipe = os.path.join(dir, f'interpolated_skeleton_{vision}.txt')
+        # 將內插後的資料寫入 TXT 檔案
+        with open(output_mediapipe, 'w') as f:
+            for entry in interpolated_data:
+                f.write(f"{int(entry[0])},{int(entry[1])},{int(entry[2])},{int(entry[3])}\n")

@@ -5,11 +5,18 @@ from loop import *
 from ultralytics import YOLO
 import torch
 import os
+from tools.Deadlift_tool.interpolate import run_interpolation
+from tools.Deadlift_tool.interpolate import run_interpolation
+from tools.Deadlift_tool.bar_data_produce import run_bar_data_produce
+from tools.Deadlift_tool.data_produce import run_data_produce
+from tools.Deadlift_tool.data_split import run_data_split
+from tools.Deadlift_tool.predict import run_predict
+from tools.trajectory import plot_trajectory
 
 def model_init():
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    bar_model = YOLO("./model/best.pt").to(device)
-    bone_model = YOLO("./model/yolo11s-pose.pt").to(device)
+    bar_model = YOLO("./model/deadlift/bar/best.pt").to(device)
+    bone_model = YOLO("./model/deadlift/skeleton/yolo11s-pose.pt").to(device)
 
     # 預先跑一次，避免 multi-thread 時出現 fuse 的錯誤
     dummy = np.zeros((480, 640, 3), dtype=np.uint8)
@@ -20,7 +27,7 @@ def model_init():
     return bar_model, bone_model
 
 def rc_prep(folder):
-    bar_file = open(os.path.join(folder, 'yolo_coordinates.txt'), "w")
+    bar_file = open(os.path.join(folder, 'coordinates.txt'), "w")
     outs = [None] * 3
     skeleton_files = [None] * 3
     for idx  in range (3):
@@ -28,12 +35,28 @@ def rc_prep(folder):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 編碼
         frame_size = (480, 640)  # 幀大小 (width, height)
         out = cv2.VideoWriter(file, fourcc, 30, frame_size)
-        skeleton_file = open(os.path.join(folder, f'yolo_skeleton_vision{idx+1}.txt'), "w")
+        skeleton_file = open(os.path.join(folder, f'skeleton_vision{idx+1}.txt'), "w")
         outs[idx] = out
         skeleton_files[idx] = skeleton_file
     return outs, bar_file, skeleton_files
 
+def predict(folder):
+    os.makedirs(f'{folder}/config', exist_ok=True)
+    # 對槓端及骨架做內插
+    run_interpolation(folder)
+    # bar
+    run_bar_data_produce(folder, sport='deadlift')
+    # angle
+    run_data_produce(folder)
+    # split data
+    run_data_split(folder)
+    # modle predict
+    run_predict(folder)
+    
+    plot_trajectory(folder)
+
 def main():
+    first_time = time.time()
     video_path = './recordings/recording_20250328_140019'
     bar_model, bone_model = model_init()
     skeleton_connections = [
@@ -59,7 +82,7 @@ def main():
     outs, bar_file, skeleton_files = rc_prep(video_path)
     print('Prepare for writing image')
     for i in range(3):
-        cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.avi')
+        cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.mp4')
         if not cap.isOpened():
             print(f"Failed to open camera {i+1}")
             continue
@@ -78,13 +101,11 @@ def main():
             
             if i == 0:
                 processed_frame = bar_frame(frame, bar_model,
-                                            bone_model, skeleton_connections,
-                                            outs[i], skeleton_files[i],
+                                            bone_model, skeleton_connections, skeleton_files[i],
                                             bar_file, frame_count_for_detect)
             else:
                 processed_frame = bone_frame(frame, bone_model,
-                                            skeleton_connections,
-                                            outs[i], skeleton_files[i],
+                                            skeleton_connections, skeleton_files[i],
                                             frame_count_for_detect)
             outs[i].write(processed_frame)
 
@@ -104,6 +125,8 @@ def main():
     for file in skeleton_files:
         if file:
             file.close()
-            
+    # 執行預測
+    predict(video_path)
+    print('processing time per video : ', time.time() - first_time)
 if __name__ == "__main__":
     main()
