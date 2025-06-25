@@ -27,15 +27,16 @@ def model_init():
     return bar_model, bone_model
 
 def rc_prep(folder):
+    visions = ['bar', 'left-front', 'left-back']
     bar_file = open(os.path.join(folder, 'coordinates.txt'), "w")
     outs = [None] * 3
     skeleton_files = [None] * 3
-    for idx  in range (3):
+    for idx, vision  in enumerate(visions):
         file = os.path.join(folder, f'vision{idx+1}_skeleton.mp4')
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 編碼
         frame_size = (480, 640)  # 幀大小 (width, height)
         out = cv2.VideoWriter(file, fourcc, 30, frame_size)
-        skeleton_file = open(os.path.join(folder, f'skeleton_vision{idx+1}.txt'), "w")
+        skeleton_file = open(os.path.join(folder, f'skeleton_{vision}.txt'), "w")
         outs[idx] = out
         skeleton_files[idx] = skeleton_file
     return outs, bar_file, skeleton_files
@@ -82,7 +83,7 @@ def main():
     outs, bar_file, skeleton_files = rc_prep(video_path)
     print('Prepare for writing image')
     for i in range(3):
-        cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.mp4')
+        cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.avi')
         if not cap.isOpened():
             print(f"Failed to open camera {i+1}")
             continue
