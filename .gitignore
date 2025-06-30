@@ -1,8 +1,6 @@
 model/
 recordings/
-new.py
 test.py
-pre_run.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
