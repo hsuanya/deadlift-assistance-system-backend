@@ -27,15 +27,16 @@ def model_init():
     return bar_model, bone_model
 
 def rc_prep(folder):
+    visions = ['bar', 'left-front', 'left-back']
     bar_file = open(os.path.join(folder, 'coordinates.txt'), "w")
     outs = [None] * 3
     skeleton_files = [None] * 3
-    for idx  in range (3):
-        file = os.path.join(folder, f'vision{idx+1}_skeleton.mp4')
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 編碼
+    for idx, vision  in enumerate(visions):
+        file = os.path.join(folder, f'vision{idx+1}_skeleton.avi')
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 使用 mp4v 編碼
         frame_size = (480, 640)  # 幀大小 (width, height)
-        out = cv2.VideoWriter(file, fourcc, 30, frame_size)
-        skeleton_file = open(os.path.join(folder, f'skeleton_vision{idx+1}.txt'), "w")
+        out = cv2.VideoWriter(file, fourcc, 29, frame_size)
+        skeleton_file = open(os.path.join(folder, f'skeleton_{vision}.txt'), "w")
         outs[idx] = out
         skeleton_files[idx] = skeleton_file
     return outs, bar_file, skeleton_files
@@ -50,14 +51,15 @@ def predict(folder):
     run_data_produce(folder)
     # split data
     run_data_split(folder)
-    # modle predict
-    run_predict(folder)
     
     plot_trajectory(folder)
+    
+    # modle predict
+    run_predict(folder)
 
-def main():
+def pre_run(video_path):
     first_time = time.time()
-    video_path = './recordings/recording_20250328_140019'
+    # video_path = './recordings/recording_20250328_140019'
     bar_model, bone_model = model_init()
     skeleton_connections = [
             (0, 1),
@@ -82,7 +84,10 @@ def main():
     outs, bar_file, skeleton_files = rc_prep(video_path)
     print('Prepare for writing image')
     for i in range(3):
-        cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.mp4')
+        if os.path.exists(f'{video_path}/vision{i+1}.mp4'):
+            cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.mp4')
+        else:
+            cap = cv2.VideoCapture(f'{video_path}/vision{i+1}.avi')
         if not cap.isOpened():
             print(f"Failed to open camera {i+1}")
             continue
@@ -93,6 +98,7 @@ def main():
         start_time = time.time()
         for i, cap in enumerate(caps):
             ret, frame = cap.read()
+            # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)  # resize to 640x480
             if not ret:
                 print(f"Camera {i} has no more frames.")
                 continue  # 這支相機讀不到就跳過
@@ -110,7 +116,7 @@ def main():
             outs[i].write(processed_frame)
 
         frame_count_for_detect += 1
-        print('processing time per frame : ', time.time() - start_time)
+        # print('processing time per frame : ', time.time() - start_time)
         if all_done:
             print("All videos have been processed.")
             break
@@ -129,4 +135,4 @@ def main():
     predict(video_path)
     print('processing time per video : ', time.time() - first_time)
 if __name__ == "__main__":
-    main()
+    pre_run()

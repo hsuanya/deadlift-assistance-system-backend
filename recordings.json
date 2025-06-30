@@ -1,436 +1,498 @@
 {
     "1000": {
-        "recording_folder": "./recordings/deadlift/recording_20250424_145110",
+        "recording_folder": "./recordings/deadlift/recording_20250328_140019",
+        "total_frames": 1345,
         "error": {
             "0": {
-                "away_from_the_shins": 0.8550999760627747,
-                "hips_rise_before_barbell": 0.09260000288486481,
-                "colliding_with_the_knees": 0.025200000032782555,
-                "lower_back_rounding": 0.025200000032782555,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.00039999998989515007,
+                "hips_rise_before_barbell": 0.028200000524520874,
+                "colliding_with_the_knees": 0.007699999958276749,
+                "lower_back_rounding": 0.007699999958276749,
+                "error": "\u99dd\u80cc"
             },
             "1": {
-                "away_from_the_shins": 0.0005000000237487257,
-                "hips_rise_before_barbell": 0.03739999979734421,
-                "colliding_with_the_knees": 0.013100000098347664,
-                "lower_back_rounding": 0.013100000098347664,
+                "away_from_the_shins": 0.10920000076293945,
+                "hips_rise_before_barbell": 0.031700000166893005,
+                "colliding_with_the_knees": 0.00019999999494757503,
+                "lower_back_rounding": 0.00019999999494757503,
+                "error": "\u99dd\u80cc"
+            },
+            "2": {
+                "away_from_the_shins": 0.008999999612569809,
+                "hips_rise_before_barbell": 0.14319999516010284,
+                "colliding_with_the_knees": 0.007000000216066837,
+                "lower_back_rounding": 0.007000000216066837,
+                "error": "\u99dd\u80cc"
+            },
+            "3": {
+                "away_from_the_shins": 0.11509999632835388,
+                "hips_rise_before_barbell": 0.057999998331069946,
+                "colliding_with_the_knees": 0.0032999999821186066,
+                "lower_back_rounding": 0.0032999999821186066,
+                "error": "\u99dd\u80cc"
+            },
+            "4": {
+                "away_from_the_shins": 0.10920000076293945,
+                "hips_rise_before_barbell": 0.015799999237060547,
+                "colliding_with_the_knees": 0.00019999999494757503,
+                "lower_back_rounding": 0.00019999999494757503,
+                "error": "\u99dd\u80cc"
+            },
+            "5": {
+                "away_from_the_shins": 0.44209998846054077,
+                "hips_rise_before_barbell": 0.006399999838322401,
+                "colliding_with_the_knees": 9.999999747378752e-05,
+                "lower_back_rounding": 9.999999747378752e-05,
+                "error": "\u99dd\u80cc"
+            },
+            "6": {
+                "away_from_the_shins": 0.012600000016391277,
+                "hips_rise_before_barbell": 0.725600004196167,
+                "colliding_with_the_knees": 0.0017999999690800905,
+                "lower_back_rounding": 0.0017999999690800905,
+                "error": "\u81c0\u90e8\u5148\u4e0a\u5347"
+            },
+            "7": {
+                "away_from_the_shins": 0.4000999927520752,
+                "hips_rise_before_barbell": 0.01140000019222498,
+                "colliding_with_the_knees": 0.009499999694526196,
+                "lower_back_rounding": 0.009499999694526196,
+                "error": "\u99dd\u80cc"
+            },
+            "8": {
+                "away_from_the_shins": 0.3955000042915344,
+                "hips_rise_before_barbell": 0.0034000000450760126,
+                "colliding_with_the_knees": 0.0003000000142492354,
+                "lower_back_rounding": 0.0003000000142492354,
+                "error": "\u99dd\u80cc"
+            },
+            "9": {
+                "away_from_the_shins": 0.412200003862381,
+                "hips_rise_before_barbell": 0.020099999383091927,
+                "colliding_with_the_knees": 0.00039999998989515007,
+                "lower_back_rounding": 0.00039999998989515007,
+                "error": "\u99dd\u80cc"
+            }
+        }
+    },
+    "1001": {
+        "recording_folder": "./recordings/deadlift/recording_20250515_110209",
+        "total_frames": 1090,
+        "error": {
+            "0": {
+                "away_from_the_shins": 0.0024999999441206455,
+                "hips_rise_before_barbell": 0.0003000000142492354,
+                "colliding_with_the_knees": 0.016699999570846558,
+                "lower_back_rounding": 0.016699999570846558,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
+            "1": {
+                "away_from_the_shins": 0.02810000069439411,
+                "hips_rise_before_barbell": 0.006000000052154064,
+                "colliding_with_the_knees": 0.027499999850988388,
+                "lower_back_rounding": 0.027499999850988388,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "2": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.07339999824762344,
-                "colliding_with_the_knees": 0.013899999670684338,
-                "lower_back_rounding": 0.013899999670684338,
+                "away_from_the_shins": 0.011099999770522118,
+                "hips_rise_before_barbell": 0.014399999752640724,
+                "colliding_with_the_knees": 0.01600000075995922,
+                "lower_back_rounding": 0.01600000075995922,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "3": {
-                "away_from_the_shins": 0.11240000277757645,
-                "hips_rise_before_barbell": 0.3154999911785126,
-                "colliding_with_the_knees": 0.01209999993443489,
-                "lower_back_rounding": 0.01209999993443489,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "4": {
-                "away_from_the_shins": 0.0007999999797903001,
-                "hips_rise_before_barbell": 0.6829000115394592,
-                "colliding_with_the_knees": 0.009600000455975533,
-                "lower_back_rounding": 0.009600000455975533,
+                "away_from_the_shins": 0.026799999177455902,
+                "hips_rise_before_barbell": 0.9384999871253967,
+                "colliding_with_the_knees": 0.020899999886751175,
+                "lower_back_rounding": 0.020899999886751175,
                 "error": "\u81c0\u90e8\u5148\u4e0a\u5347"
             },
+            "4": {
+                "away_from_the_shins": 0.05260000005364418,
+                "hips_rise_before_barbell": 0.057999998331069946,
+                "colliding_with_the_knees": 0.013500000350177288,
+                "lower_back_rounding": 0.013500000350177288,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
             "5": {
-                "away_from_the_shins": 0.0012000000569969416,
-                "hips_rise_before_barbell": 0.11140000075101852,
-                "colliding_with_the_knees": 0.009600000455975533,
-                "lower_back_rounding": 0.009600000455975533,
+                "away_from_the_shins": 0.1680999994277954,
+                "hips_rise_before_barbell": 0.002899999963119626,
+                "colliding_with_the_knees": 0.009999999776482582,
+                "lower_back_rounding": 0.009999999776482582,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "6": {
-                "away_from_the_shins": 0.0003000000142492354,
-                "hips_rise_before_barbell": 0.10140000283718109,
-                "colliding_with_the_knees": 0.07720000296831131,
-                "lower_back_rounding": 0.07720000296831131,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
+                "away_from_the_shins": 0.045499999076128006,
+                "hips_rise_before_barbell": 0.004600000102072954,
+                "colliding_with_the_knees": 0.6705999970436096,
+                "lower_back_rounding": 0.6705999970436096,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "7": {
-                "away_from_the_shins": 0.0006000000284984708,
-                "hips_rise_before_barbell": 0.04039999842643738,
-                "colliding_with_the_knees": 0.006899999920278788,
-                "lower_back_rounding": 0.006899999920278788,
+                "away_from_the_shins": 0.006300000008195639,
+                "hips_rise_before_barbell": 0.030300000682473183,
+                "colliding_with_the_knees": 0.0035000001080334187,
+                "lower_back_rounding": 0.0035000001080334187,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "8": {
-                "away_from_the_shins": 0.0027000000700354576,
-                "hips_rise_before_barbell": 0.03830000013113022,
+                "away_from_the_shins": 0.2797999978065491,
+                "hips_rise_before_barbell": 0.006500000134110451,
                 "colliding_with_the_knees": 0.0034000000450760126,
                 "lower_back_rounding": 0.0034000000450760126,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "9": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.3747999966144562,
-                "colliding_with_the_knees": 0.011500000022351742,
-                "lower_back_rounding": 0.011500000022351742,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "10": {
-                "away_from_the_shins": 0.0017999999690800905,
-                "hips_rise_before_barbell": 0.125900000333786,
-                "colliding_with_the_knees": 0.048900000751018524,
-                "lower_back_rounding": 0.048900000751018524,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            }
-        },
-        "total_frames": 1066
-    },
-    "1001": {
-        "recording_folder": "./recordings/deadlift/recording_20250326_165307",
-        "total_frames": 1192,
-        "error": {
-            "0": {
-                "away_from_the_shins": 0.005100000184029341,
-                "hips_rise_before_barbell": 0.01979999989271164,
-                "colliding_with_the_knees": 0.04309999942779541,
-                "lower_back_rounding": 0.04309999942779541,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "1": {
-                "away_from_the_shins": 0.020999999716877937,
-                "hips_rise_before_barbell": 0.01119999960064888,
-                "colliding_with_the_knees": 0.11569999903440475,
-                "lower_back_rounding": 0.11569999903440475,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "2": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.015399999916553497,
-                "colliding_with_the_knees": 0.17409999668598175,
-                "lower_back_rounding": 0.17409999668598175,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "3": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.027000000700354576,
-                "colliding_with_the_knees": 0.13420000672340393,
-                "lower_back_rounding": 0.13420000672340393,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "4": {
-                "away_from_the_shins": 0.012600000016391277,
-                "hips_rise_before_barbell": 0.024000000208616257,
-                "colliding_with_the_knees": 0.13779999315738678,
-                "lower_back_rounding": 0.13779999315738678,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "5": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.020400000736117363,
-                "colliding_with_the_knees": 0.19259999692440033,
-                "lower_back_rounding": 0.19259999692440033,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "6": {
-                "away_from_the_shins": 0.04740000143647194,
-                "hips_rise_before_barbell": 0.013399999588727951,
-                "colliding_with_the_knees": 0.012500000186264515,
-                "lower_back_rounding": 0.012500000186264515,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "7": {
-                "away_from_the_shins": 0.00839999970048666,
-                "hips_rise_before_barbell": 0.007199999876320362,
-                "colliding_with_the_knees": 0.01979999989271164,
-                "lower_back_rounding": 0.01979999989271164,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "8": {
-                "away_from_the_shins": 0.0010999999940395355,
-                "hips_rise_before_barbell": 0.01640000008046627,
-                "colliding_with_the_knees": 0.36410000920295715,
-                "lower_back_rounding": 0.36410000920295715,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
-            },
-            "9": {
-                "away_from_the_shins": 0.006599999964237213,
-                "hips_rise_before_barbell": 0.027400000020861626,
-                "colliding_with_the_knees": 0.038600001484155655,
-                "lower_back_rounding": 0.038600001484155655,
+                "away_from_the_shins": 0.3400000035762787,
+                "hips_rise_before_barbell": 0.0017000000225380063,
+                "colliding_with_the_knees": 0.31459999084472656,
+                "lower_back_rounding": 0.31459999084472656,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             }
         }
     },
     "1002": {
-        "recording_folder": "./recordings/deadlift/recording_20250326_165444",
-        "total_frames": 1270,
+        "recording_folder": "./recordings/deadlift/recording_20250515_110327",
+        "total_frames": 997,
         "error": {
             "0": {
-                "away_from_the_shins": 0.9876999855041504,
-                "hips_rise_before_barbell": 0.011699999682605267,
-                "colliding_with_the_knees": 0.015399999916553497,
-                "lower_back_rounding": 0.015399999916553497,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.09960000216960907,
+                "hips_rise_before_barbell": 0.04019999876618385,
+                "colliding_with_the_knees": 0.01360000018030405,
+                "lower_back_rounding": 0.01360000018030405,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "1": {
-                "away_from_the_shins": 0.955299973487854,
-                "hips_rise_before_barbell": 0.008200000040233135,
-                "colliding_with_the_knees": 0.01679999940097332,
-                "lower_back_rounding": 0.01679999940097332,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.05649999901652336,
+                "hips_rise_before_barbell": 0.04450000077486038,
+                "colliding_with_the_knees": 0.06610000133514404,
+                "lower_back_rounding": 0.06610000133514404,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "2": {
-                "away_from_the_shins": 0.9348000288009644,
-                "hips_rise_before_barbell": 0.006099999882280827,
-                "colliding_with_the_knees": 0.01489999983459711,
-                "lower_back_rounding": 0.01489999983459711,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.018300000578165054,
+                "hips_rise_before_barbell": 0.041999999433755875,
+                "colliding_with_the_knees": 0.02669999934732914,
+                "lower_back_rounding": 0.02669999934732914,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "3": {
-                "away_from_the_shins": 0.9994000196456909,
-                "hips_rise_before_barbell": 0.003800000064074993,
-                "colliding_with_the_knees": 0.0034000000450760126,
-                "lower_back_rounding": 0.0034000000450760126,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.13269999623298645,
+                "hips_rise_before_barbell": 0.002300000051036477,
+                "colliding_with_the_knees": 0.007300000172108412,
+                "lower_back_rounding": 0.007300000172108412,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "4": {
-                "away_from_the_shins": 0.998199999332428,
-                "hips_rise_before_barbell": 0.00930000003427267,
-                "colliding_with_the_knees": 0.0007999999797903001,
-                "lower_back_rounding": 0.0007999999797903001,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.058400001376867294,
+                "hips_rise_before_barbell": 0.002199999988079071,
+                "colliding_with_the_knees": 0.025699999183416367,
+                "lower_back_rounding": 0.025699999183416367,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "5": {
-                "away_from_the_shins": 0.9969000220298767,
-                "hips_rise_before_barbell": 0.013000000268220901,
-                "colliding_with_the_knees": 0.006000000052154064,
-                "lower_back_rounding": 0.006000000052154064,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.22930000722408295,
+                "hips_rise_before_barbell": 0.0017000000225380063,
+                "colliding_with_the_knees": 0.0142000000923872,
+                "lower_back_rounding": 0.0142000000923872,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "6": {
-                "away_from_the_shins": 0.4325000047683716,
-                "hips_rise_before_barbell": 0.00860000029206276,
-                "colliding_with_the_knees": 0.0020000000949949026,
-                "lower_back_rounding": 0.0020000000949949026,
+                "away_from_the_shins": 0.02630000002682209,
+                "hips_rise_before_barbell": 0.0019000000320374966,
+                "colliding_with_the_knees": 0.01080000028014183,
+                "lower_back_rounding": 0.01080000028014183,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "7": {
-                "away_from_the_shins": 0.0019000000320374966,
-                "hips_rise_before_barbell": 0.03909999877214432,
-                "colliding_with_the_knees": 0.003000000026077032,
-                "lower_back_rounding": 0.003000000026077032,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.23549999296665192,
+                "hips_rise_before_barbell": 0.0017000000225380063,
+                "colliding_with_the_knees": 0.010900000110268593,
+                "lower_back_rounding": 0.010900000110268593,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "8": {
-                "away_from_the_shins": 0.0035000001080334187,
-                "hips_rise_before_barbell": 0.009399999864399433,
-                "colliding_with_the_knees": 0.024299999698996544,
-                "lower_back_rounding": 0.024299999698996544,
+                "away_from_the_shins": 0.07460000365972519,
+                "hips_rise_before_barbell": 0.028200000524520874,
+                "colliding_with_the_knees": 0.04399999976158142,
+                "lower_back_rounding": 0.04399999976158142,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "9": {
-                "away_from_the_shins": 0.4156000018119812,
-                "hips_rise_before_barbell": 0.009200000204145908,
-                "colliding_with_the_knees": 0.1673000007867813,
-                "lower_back_rounding": 0.1673000007867813,
+                "away_from_the_shins": 0.06939999759197235,
+                "hips_rise_before_barbell": 0.002899999963119626,
+                "colliding_with_the_knees": 0.12759999930858612,
+                "lower_back_rounding": 0.12759999930858612,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             }
         }
     },
     "1003": {
-        "recording_folder": "./recordings/deadlift/recording_20250326_165628",
-        "total_frames": 1170,
+        "recording_folder": "./recordings/deadlift/recording_20250515_110435",
+        "total_frames": 1136,
         "error": {
             "0": {
-                "away_from_the_shins": 0.9101999998092651,
-                "hips_rise_before_barbell": 0.007899999618530273,
-                "colliding_with_the_knees": 0.031700000166893005,
-                "lower_back_rounding": 0.031700000166893005,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
-            },
-            "1": {
-                "away_from_the_shins": 0.1987999975681305,
-                "hips_rise_before_barbell": 0.5123999714851379,
-                "colliding_with_the_knees": 0.007699999958276749,
-                "lower_back_rounding": 0.007699999958276749,
+                "away_from_the_shins": 0.013500000350177288,
+                "hips_rise_before_barbell": 0.11180000007152557,
+                "colliding_with_the_knees": 0.0034000000450760126,
+                "lower_back_rounding": 0.0034000000450760126,
                 "error": "\u99dd\u80cc"
             },
+            "1": {
+                "away_from_the_shins": 0.04270000010728836,
+                "hips_rise_before_barbell": 0.05939999967813492,
+                "colliding_with_the_knees": 0.0006000000284984708,
+                "lower_back_rounding": 0.0006000000284984708,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
             "2": {
-                "away_from_the_shins": 0.0015999999595806003,
-                "hips_rise_before_barbell": 0.12099999934434891,
-                "colliding_with_the_knees": 0.0,
-                "lower_back_rounding": 0.0,
+                "away_from_the_shins": 0.0406000018119812,
+                "hips_rise_before_barbell": 0.37689998745918274,
+                "colliding_with_the_knees": 0.0010999999940395355,
+                "lower_back_rounding": 0.0010999999940395355,
                 "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "3": {
-                "away_from_the_shins": 0.9955000281333923,
-                "hips_rise_before_barbell": 0.005799999926239252,
-                "colliding_with_the_knees": 0.010300000198185444,
-                "lower_back_rounding": 0.010300000198185444,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.008799999952316284,
+                "hips_rise_before_barbell": 0.05050000175833702,
+                "colliding_with_the_knees": 0.0005000000237487257,
+                "lower_back_rounding": 0.0005000000237487257,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "4": {
-                "away_from_the_shins": 0.005100000184029341,
-                "hips_rise_before_barbell": 0.023900000378489494,
-                "colliding_with_the_knees": 0.006300000008195639,
-                "lower_back_rounding": 0.006300000008195639,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.0024999999441206455,
+                "hips_rise_before_barbell": 0.052000001072883606,
+                "colliding_with_the_knees": 0.005900000222027302,
+                "lower_back_rounding": 0.005900000222027302,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "5": {
-                "away_from_the_shins": 0.0015999999595806003,
-                "hips_rise_before_barbell": 0.22930000722408295,
-                "colliding_with_the_knees": 0.0006000000284984708,
-                "lower_back_rounding": 0.0006000000284984708,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.013000000268220901,
+                "hips_rise_before_barbell": 0.03530000150203705,
+                "colliding_with_the_knees": 0.010099999606609344,
+                "lower_back_rounding": 0.010099999606609344,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "6": {
-                "away_from_the_shins": 0.0,
-                "hips_rise_before_barbell": 0.7361999750137329,
-                "colliding_with_the_knees": 0.003000000026077032,
-                "lower_back_rounding": 0.003000000026077032,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.010599999688565731,
+                "hips_rise_before_barbell": 0.028999999165534973,
+                "colliding_with_the_knees": 0.002300000051036477,
+                "lower_back_rounding": 0.002300000051036477,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "7": {
-                "away_from_the_shins": 0.13420000672340393,
-                "hips_rise_before_barbell": 0.01940000057220459,
-                "colliding_with_the_knees": 0.004600000102072954,
-                "lower_back_rounding": 0.004600000102072954,
+                "away_from_the_shins": 0.025800000876188278,
+                "hips_rise_before_barbell": 0.06080000102519989,
+                "colliding_with_the_knees": 0.017500000074505806,
+                "lower_back_rounding": 0.017500000074505806,
                 "error": "\u99dd\u80cc"
             },
             "8": {
-                "away_from_the_shins": 0.01759999990463257,
-                "hips_rise_before_barbell": 0.2460000067949295,
-                "colliding_with_the_knees": 0.0026000000070780516,
-                "lower_back_rounding": 0.0026000000070780516,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.15479999780654907,
+                "hips_rise_before_barbell": 0.001500000013038516,
+                "colliding_with_the_knees": 0.7195000052452087,
+                "lower_back_rounding": 0.7195000052452087,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "9": {
-                "away_from_the_shins": 0.0008999999845400453,
-                "hips_rise_before_barbell": 0.006099999882280827,
-                "colliding_with_the_knees": 0.009800000116229057,
-                "lower_back_rounding": 0.009800000116229057,
-                "error": "\u99dd\u80cc"
-            },
-            "10": {
-                "away_from_the_shins": 0.005100000184029341,
-                "hips_rise_before_barbell": 0.023900000378489494,
-                "colliding_with_the_knees": 0.006300000008195639,
-                "lower_back_rounding": 0.006300000008195639,
-                "error": "\u99dd\u80cc"
-            },
-            "11": {
-                "away_from_the_shins": 0.5437999963760376,
-                "hips_rise_before_barbell": 0.007000000216066837,
-                "colliding_with_the_knees": 0.0008999999845400453,
-                "lower_back_rounding": 0.0008999999845400453,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.0019000000320374966,
+                "hips_rise_before_barbell": 0.08789999783039093,
+                "colliding_with_the_knees": 0.00039999998989515007,
+                "lower_back_rounding": 0.00039999998989515007,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             }
         }
     },
     "1004": {
-        "recording_folder": "./recordings/deadlift/recording_20250326_165756",
-        "total_frames": 1209,
+        "recording_folder": "./recordings/deadlift/recording_20250515_110526",
+        "total_frames": 1012,
         "error": {
             "0": {
-                "away_from_the_shins": 0.00279999990016222,
-                "hips_rise_before_barbell": 0.007899999618530273,
-                "colliding_with_the_knees": 0.2985000014305115,
-                "lower_back_rounding": 0.2985000014305115,
-                "error": "\u52d5\u4f5c\u6b63\u78ba"
+                "away_from_the_shins": 0.0005000000237487257,
+                "hips_rise_before_barbell": 0.00570000009611249,
+                "colliding_with_the_knees": 0.9962999820709229,
+                "lower_back_rounding": 0.9962999820709229,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "1": {
-                "away_from_the_shins": 0.0017999999690800905,
-                "hips_rise_before_barbell": 0.004399999976158142,
-                "colliding_with_the_knees": 0.7457000017166138,
-                "lower_back_rounding": 0.7457000017166138,
+                "away_from_the_shins": 0.003100000089034438,
+                "hips_rise_before_barbell": 0.002099999925121665,
+                "colliding_with_the_knees": 0.989300012588501,
+                "lower_back_rounding": 0.989300012588501,
                 "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "2": {
-                "away_from_the_shins": 0.979200005531311,
-                "hips_rise_before_barbell": 0.00570000009611249,
-                "colliding_with_the_knees": 0.024700000882148743,
-                "lower_back_rounding": 0.024700000882148743,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 0.0027000000700354576,
+                "hips_rise_before_barbell": 0.006399999838322401,
+                "colliding_with_the_knees": 0.9947999715805054,
+                "lower_back_rounding": 0.9947999715805054,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "3": {
-                "away_from_the_shins": 0.9986000061035156,
-                "hips_rise_before_barbell": 0.00860000029206276,
-                "colliding_with_the_knees": 0.9635000228881836,
-                "lower_back_rounding": 0.9635000228881836,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
+                "away_from_the_shins": 9.999999747378752e-05,
+                "hips_rise_before_barbell": 0.00839999970048666,
+                "colliding_with_the_knees": 0.9972000122070312,
+                "lower_back_rounding": 0.9972000122070312,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "4": {
-                "away_from_the_shins": 0.8403000235557556,
-                "hips_rise_before_barbell": 0.004000000189989805,
-                "colliding_with_the_knees": 0.5060999989509583,
-                "lower_back_rounding": 0.5060999989509583,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.014999999664723873,
+                "hips_rise_before_barbell": 0.00430000014603138,
+                "colliding_with_the_knees": 0.9117000102996826,
+                "lower_back_rounding": 0.9117000102996826,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "5": {
-                "away_from_the_shins": 0.038600001484155655,
-                "hips_rise_before_barbell": 0.003000000026077032,
-                "colliding_with_the_knees": 0.7508000135421753,
-                "lower_back_rounding": 0.7508000135421753,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.010300000198185444,
+                "hips_rise_before_barbell": 0.015200000256299973,
+                "colliding_with_the_knees": 0.9851999878883362,
+                "lower_back_rounding": 0.9851999878883362,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "6": {
-                "away_from_the_shins": 0.3790000081062317,
-                "hips_rise_before_barbell": 0.006000000052154064,
-                "colliding_with_the_knees": 0.7764999866485596,
-                "lower_back_rounding": 0.7764999866485596,
+                "away_from_the_shins": 0.04019999876618385,
+                "hips_rise_before_barbell": 0.01489999983459711,
+                "colliding_with_the_knees": 0.8783000111579895,
+                "lower_back_rounding": 0.8783000111579895,
                 "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "7": {
-                "away_from_the_shins": 0.00570000009611249,
-                "hips_rise_before_barbell": 0.00430000014603138,
-                "colliding_with_the_knees": 0.3052999973297119,
-                "lower_back_rounding": 0.3052999973297119,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.0010999999940395355,
+                "hips_rise_before_barbell": 0.011099999770522118,
+                "colliding_with_the_knees": 0.9426000118255615,
+                "lower_back_rounding": 0.9426000118255615,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            },
+            "8": {
+                "away_from_the_shins": 9.999999747378752e-05,
+                "hips_rise_before_barbell": 0.003800000064074993,
+                "colliding_with_the_knees": 0.992900013923645,
+                "lower_back_rounding": 0.992900013923645,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            },
+            "9": {
+                "away_from_the_shins": 0.0007999999797903001,
+                "hips_rise_before_barbell": 0.006399999838322401,
+                "colliding_with_the_knees": 0.9957000017166138,
+                "lower_back_rounding": 0.9957000017166138,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             }
         }
     },
     "1005": {
-        "recording_folder": "./recordings/deadlift/recording_20250326_170004",
-        "total_frames": 853,
+        "recording_folder": "./recordings/deadlift/recording_20250515_110612",
+        "total_frames": 1190,
         "error": {
             "0": {
-                "away_from_the_shins": 0.05209999904036522,
-                "hips_rise_before_barbell": 0.007799999788403511,
-                "colliding_with_the_knees": 0.8349999785423279,
-                "lower_back_rounding": 0.8349999785423279,
+                "away_from_the_shins": 9.999999747378752e-05,
+                "hips_rise_before_barbell": 0.012400000356137753,
+                "colliding_with_the_knees": 0.8687999844551086,
+                "lower_back_rounding": 0.8687999844551086,
                 "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             },
             "1": {
-                "away_from_the_shins": 0.6819000244140625,
-                "hips_rise_before_barbell": 0.013299999758601189,
-                "colliding_with_the_knees": 0.001500000013038516,
-                "lower_back_rounding": 0.001500000013038516,
+                "away_from_the_shins": 0.0015999999595806003,
+                "hips_rise_before_barbell": 0.014000000432133675,
+                "colliding_with_the_knees": 0.3668999969959259,
+                "lower_back_rounding": 0.3668999969959259,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
+            "2": {
+                "away_from_the_shins": 0.1542000025510788,
+                "hips_rise_before_barbell": 0.02370000071823597,
+                "colliding_with_the_knees": 0.01209999993443489,
+                "lower_back_rounding": 0.01209999993443489,
+                "error": "\u99dd\u80cc"
+            },
+            "3": {
+                "away_from_the_shins": 0.012799999676644802,
+                "hips_rise_before_barbell": 0.0038999998942017555,
+                "colliding_with_the_knees": 0.9574999809265137,
+                "lower_back_rounding": 0.9574999809265137,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            },
+            "4": {
+                "away_from_the_shins": 0.005499999970197678,
+                "hips_rise_before_barbell": 0.4244999885559082,
+                "colliding_with_the_knees": 0.0006000000284984708,
+                "lower_back_rounding": 0.0006000000284984708,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
+            "5": {
+                "away_from_the_shins": 0.017100000753998756,
+                "hips_rise_before_barbell": 0.00039999998989515007,
+                "colliding_with_the_knees": 0.01489999983459711,
+                "lower_back_rounding": 0.01489999983459711,
+                "error": "\u99dd\u80cc"
+            },
+            "6": {
+                "away_from_the_shins": 0.0,
+                "hips_rise_before_barbell": 0.00419999985024333,
+                "colliding_with_the_knees": 0.991599977016449,
+                "lower_back_rounding": 0.991599977016449,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            },
+            "7": {
+                "away_from_the_shins": 0.0006000000284984708,
+                "hips_rise_before_barbell": 0.006500000134110451,
+                "colliding_with_the_knees": 0.13750000298023224,
+                "lower_back_rounding": 0.13750000298023224,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
+            "8": {
+                "away_from_the_shins": 0.0013000000035390258,
+                "hips_rise_before_barbell": 0.004900000058114529,
+                "colliding_with_the_knees": 0.9516000151634216,
+                "lower_back_rounding": 0.9516000151634216,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            },
+            "9": {
+                "away_from_the_shins": 0.00559999980032444,
+                "hips_rise_before_barbell": 0.003800000064074993,
+                "colliding_with_the_knees": 0.920799970626831,
+                "lower_back_rounding": 0.920799970626831,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+            }
+        }
+    },
+    "1500": {
+        "recording_folder": "./recordings/deadlift/recording_20250626_095004",
+        "total_frames": 830,
+        "error": {
+            "0": {
+                "away_from_the_shins": 0.0010999999940395355,
+                "hips_rise_before_barbell": 0.0017999999690800905,
+                "colliding_with_the_knees": 0.03150000050663948,
+                "lower_back_rounding": 0.03150000050663948,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
+            },
+            "1": {
+                "away_from_the_shins": 0.0013000000035390258,
+                "hips_rise_before_barbell": 0.6097000241279602,
+                "colliding_with_the_knees": 9.999999747378752e-05,
+                "lower_back_rounding": 9.999999747378752e-05,
                 "error": "\u99dd\u80cc"
             },
             "2": {
-                "away_from_the_shins": 0.42559999227523804,
-                "hips_rise_before_barbell": 0.027899999171495438,
-                "colliding_with_the_knees": 0.8219000101089478,
-                "lower_back_rounding": 0.8219000101089478,
-                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
+                "away_from_the_shins": 0.0006000000284984708,
+                "hips_rise_before_barbell": 0.9835000038146973,
+                "colliding_with_the_knees": 0.0020000000949949026,
+                "lower_back_rounding": 0.0020000000949949026,
+                "error": "\u81c0\u90e8\u5148\u4e0a\u5347"
             },
             "3": {
-                "away_from_the_shins": 0.013199999928474426,
-                "hips_rise_before_barbell": 0.18209999799728394,
-                "colliding_with_the_knees": 0.15860000252723694,
-                "lower_back_rounding": 0.15860000252723694,
-                "error": "\u99dd\u80cc"
+                "away_from_the_shins": 0.029100000858306885,
+                "hips_rise_before_barbell": 0.001500000013038516,
+                "colliding_with_the_knees": 0.024000000208616257,
+                "lower_back_rounding": 0.024000000208616257,
+                "error": "\u52d5\u4f5c\u6b63\u78ba"
             },
             "4": {
-                "away_from_the_shins": 0.7894999980926514,
-                "hips_rise_before_barbell": 0.004100000020116568,
-                "colliding_with_the_knees": 0.4429999887943268,
-                "lower_back_rounding": 0.4429999887943268,
-                "error": "\u69d3\u9234\u8ddd\u96e2\u5c0f\u817f\u904e\u9060"
-            },
-            "5": {
-                "away_from_the_shins": 0.12409999966621399,
-                "hips_rise_before_barbell": 0.9922999739646912,
-                "colliding_with_the_knees": 0.005799999926239252,
-                "lower_back_rounding": 0.005799999926239252,
-                "error": "\u81c0\u90e8\u5148\u4e0a\u5347"
+                "away_from_the_shins": 0.008700000122189522,
+                "hips_rise_before_barbell": 0.008700000122189522,
+                "colliding_with_the_knees": 0.619700014591217,
+                "lower_back_rounding": 0.619700014591217,
+                "error": "\u69d3\u9234\u7e5e\u904e\u819d\u84cb"
             }
         }
     }

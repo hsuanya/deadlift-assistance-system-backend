@@ -1,6 +1,5 @@
 import cv2
 import os
-import argparse
 
 def trajectory(video_path, coordinates_path, output_path):
     # 解析座標檔案
@@ -16,9 +15,10 @@ def trajectory(video_path, coordinates_path, output_path):
 
     # 打開影片
     cap = cv2.VideoCapture(video_path)
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    frame_total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
@@ -27,8 +27,9 @@ def trajectory(video_path, coordinates_path, output_path):
 
     # 開始處理影片
     frame_count = 0
-    while cap.isOpened():
+    while cap.isOpened() and frame_count < frame_total:
         ret, frame = cap.read()
+        # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         if not ret:
             break
 
@@ -59,11 +60,15 @@ def trajectory(video_path, coordinates_path, output_path):
     cap.release()
     out.release()
     print("output_path：", output_path)
+    print(f"Written frames: {frame_count}, Original frames: {frame_total}")
 
 
 def plot_trajectory(folder):
     # 載入影片和座標
-    video_path = os.path.join(folder, 'vision1.avi')
+    if os.path.exists(f'{folder}/vision1.mp4'):
+        video_path = f'{folder}/vision1.mp4'
+    else:
+        video_path = f'{folder}/vision1.avi'
     coordinates_path = os.path.join(folder, 'coordinates_interpolated.txt')
     output_path = os.path.join(folder, 'vision1_drawed.avi')
     trajectory(video_path, coordinates_path, output_path)

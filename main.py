@@ -20,6 +20,7 @@ import subprocess
 import copy
 
 from compute_frame import Human_Vision, predict
+from pre_run import pre_run
 import api_func
 
 app = FastAPI()
@@ -33,7 +34,7 @@ app.add_middleware(
 )
 
 is_recording = False
-id = 1001
+id = 2000
 
 
 @app.get("/detection_result/{item_id}")
@@ -43,14 +44,17 @@ def get_detection_result(item_id: int):
         folder = recordings[str(item_id)]["recording_folder"]
 
     if ('error' not in recordings[str(item_id)]):
-        predict(folder)
+        pre_run(folder)
 
     with open(f"{folder}/config/Score.json", mode='r', encoding='utf-8') as json_file:
         score_data = json.load(json_file)['results']
     with open(f"{folder}/config/Split_info.json", mode='r', encoding='utf-8') as json_file:
         split_data = json.load(json_file)
     
-    cap = cv2.VideoCapture(os.path.join(folder, "vision2.avi"))
+    if os.path.exists(os.path.join(folder, "vision2.avi")):
+        cap = cv2.VideoCapture(os.path.join(folder, "vision2.avi"))
+    else: 
+        cap = cv2.VideoCapture(os.path.join(folder, "vision2.mp4"))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
 
@@ -168,16 +172,14 @@ async def get_video(item_id: int, vision_index: int):
         data = json.load(json_file)
         folder = data[str(item_id)]["recording_folder"]
 
-    video_name = f"vision{vision_index}_drawed" if vision_index == 1 else f"vision{vision_index}"
+    video_name = f"vision{vision_index}_drawed" if vision_index == 1 else f"vision{vision_index}_skeleton"
     avi_path = os.path.join(folder, f"{video_name}.avi")
     mp4_path = os.path.join(folder, f"{video_name}.mp4")
-    lock_path = os.path.join(folder, f"{video_name}.lock")
-    temp_path = os.path.join(folder, f"{video_name}.temp.mp4")
 
     # 等待 AVI 出現
     count = 0
     while not os.path.exists(avi_path):
-        if count == 20:
+        if count == 100:
             break
         count += 1
         await asyncio.sleep(1.5)
@@ -246,7 +248,7 @@ def read_workout_plan(item_id: int):
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
-    plan_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作分類模型的信心值(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，你會建議他怎麼安排訓練菜單，越清楚越好。請用 markdown 語法回答"""    
+    plan_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作分類模型的信心值(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，你會建議他怎麼「安排一週詳細的訓練菜單」，越清楚越好。請用 markdown 語法回答"""    
     plan_result = api_func.get_openai_response(plan_prompt)
     return {'result': extract_markdown(plan_result)}
 
@@ -308,6 +310,11 @@ def upload_files(files: List[UploadFile] = File(...)):
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         saved_files.append(file_location)
+
+        # # 轉檔為 MP4
+        # if os.path.splitext(file_location)[1] == ".avi":
+        #     print("############filename:"+os.path.splitext(file.filename)[0])
+        #     avi_to_mp4(folder_path, os.path.splitext(file.filename)[0])
 
     global id
     with open("recordings.json", mode='r', encoding='utf-8') as json_file:
@@ -383,6 +390,66 @@ def extract_frame(video_path, frame_number=0):
         return False
 
     return True
+
+@app.post("/record")
+async def record(files: List[UploadFile] = File(...)):
+    # 建立以 timestamp 命名的資料夾
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder_name = f"recording_{timestamp}"
+    folder_path = "./recordings/deadlift/" + folder_name
+    os.makedirs(folder_path, exist_ok=True)
+
+    mp4_files = []
+    for i, file in enumerate(files):
+        # 讀取 webm 的 bytes
+        webm_bytes = await file.read()
+
+        # 設定 mp4 輸出檔案名稱
+        mp4_filename = f"vision{i + 1}.mp4"
+        mp4_path = os.path.join(folder_path, mp4_filename)
+
+        # 轉檔
+        webm_bytes_to_mp4_file(webm_bytes, mp4_path)
+
+        mp4_files.append(mp4_path)
+    
+    global id
+    with open("recordings.json", mode='r', encoding='utf-8') as json_file:
+        recordings = json.load(json_file)
+    recordings[id] = {}
+    recordings[id]['recording_folder'] = folder_path
+    with open("recordings.json", mode='w', encoding='utf-8') as json_file:
+        json.dump(recordings, json_file,  indent=4)
+    record_id = id
+    id += 1
+    return {"id": str(record_id)}
+
+
+def webm_bytes_to_mp4_file(webm_bytes: bytes, output_path: str):
+    ffmpeg_cmd = [
+        "ffmpeg",
+        "-y",                      # 覆蓋舊檔案
+        "-i", "pipe:0",            # 從 stdin 讀入影片 bytes
+        "-vf", "transpose=1,fps=29",  # 旋轉影片, Downsample to 30 fps
+        "-c:v", "libx264",         # 使用 H.264 壓縮
+        "-preset", "fast",         # 壓縮速度
+        "-pix_fmt", "yuv420p",     # 確保瀏覽器相容性
+        "-c:a", "aac",             # 音訊壓縮格式（若有音訊）
+        "-strict", "experimental", # aac 所需
+        output_path
+    ]
+
+    process = subprocess.run(
+        ffmpeg_cmd,
+        input=webm_bytes,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+
+    if process.returncode != 0:
+        raise RuntimeError(f"FFmpeg failed: {process.stderr.decode()}")
+
+    return output_path
 
 @app.post("/start_record")
 def start_record():

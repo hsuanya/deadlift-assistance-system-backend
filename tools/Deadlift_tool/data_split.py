@@ -836,6 +836,7 @@ def run_data_split(path):
     for vision in visions:
         file = os.path.join(path, f'interpolated_skeleton_{vision}.txt')
         folder = os.path.join(path, f'skeleton_{vision}')
+        split_bar_data(bar_file_path, split_bar_folder, valleys, valleys1)
         split_skeleton_data(file, folder, valleys, valleys1,
                             bar_file_path)
         if vision == 'bar':
@@ -845,7 +846,6 @@ def run_data_split(path):
         elif vision == 'left-back':
             process_left_back_vision(folder)
         
-    split_bar_data(bar_file_path, split_bar_folder, valleys, valleys1)
 
     # Example usage
     process_data(path, target_length=110)
