@@ -6,7 +6,6 @@ from ultralytics import YOLO
 import torch
 import os
 from tools.Deadlift_tool.interpolate import run_interpolation
-from tools.Deadlift_tool.interpolate import run_interpolation
 from tools.Deadlift_tool.bar_data_produce import run_bar_data_produce
 from tools.Deadlift_tool.data_produce import run_data_produce
 from tools.Deadlift_tool.data_split import run_data_split
@@ -33,7 +32,7 @@ def rc_prep(folder):
     skeleton_files = [None] * 3
     for idx, vision  in enumerate(visions):
         file = os.path.join(folder, f'vision{idx+1}_skeleton.mp4')
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 使用 mp4v 編碼
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')  # 使用 mp4v 編碼
         frame_size = (480, 640)  # 幀大小 (width, height)
         out = cv2.VideoWriter(file, fourcc, 30, frame_size)
         skeleton_file = open(os.path.join(folder, f'skeleton_{vision}.txt'), "w")
@@ -58,7 +57,7 @@ def predict(folder):
 
 def main():
     first_time = time.time()
-    video_path = './recordings/recording_20250328_140019'
+    video_path = './recordings/recording_20250328_140308'
     bar_model, bone_model = model_init()
     skeleton_connections = [
             (0, 1),
@@ -111,7 +110,7 @@ def main():
             outs[i].write(processed_frame)
 
         frame_count_for_detect += 1
-        print('processing time per frame : ', time.time() - start_time)
+        # print('processing time per frame : ', time.time() - start_time)
         if all_done:
             print("All videos have been processed.")
             break
@@ -120,6 +119,7 @@ def main():
         cap.release()
     for out in outs:
         if out:
+            print('release out')
             out.release()
     if bar_file:
         bar_file.close()

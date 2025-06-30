@@ -19,7 +19,7 @@ def trajectory(video_path, coordinates_path, output_path):
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    fourcc = cv2.VideoWriter_fourcc(*'avc1')  # 使用 mp4v 編碼
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     # 設定軌跡視窗範圍
@@ -65,5 +65,7 @@ def plot_trajectory(folder):
     # 載入影片和座標
     video_path = os.path.join(folder, 'vision1.avi')
     coordinates_path = os.path.join(folder, 'coordinates_interpolated.txt')
-    output_path = os.path.join(folder, 'vision1_drawed.avi')
+    output_path = os.path.join(folder, 'vision1_drawed.mp4')
     trajectory(video_path, coordinates_path, output_path)
+    
+plot_trajectory('./recordings/recording_20250328_140308')
