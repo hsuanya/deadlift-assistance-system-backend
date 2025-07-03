@@ -100,7 +100,7 @@ def run_predict(folder):
     }
     results = {}
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    data_path = os.path.join(folder, 'data_norm')
+    data_path = os.path.join(folder, 'data_norm2')
     features = merge_data(data_path)
     for num, name in category.items():
         model = BiLSTMModel(input_dim=40)
