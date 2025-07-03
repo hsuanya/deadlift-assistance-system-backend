@@ -55,8 +55,10 @@ def predict(folder):
     plot_trajectory(folder)
     
     # modle predict
+    first = time.time()
     run_predict(folder)
-
+    print("processing time :", time.time()-first)
+    
 def pre_run(video_path):
     first_time = time.time()
     # video_path = './recordings/recording_20250328_140019'
@@ -135,4 +137,5 @@ def pre_run(video_path):
     predict(video_path)
     print('processing time per video : ', time.time() - first_time)
 if __name__ == "__main__":
-    pre_run()
+    video_path = "./recordings/recording_20250328_140412"
+    pre_run(video_path)
