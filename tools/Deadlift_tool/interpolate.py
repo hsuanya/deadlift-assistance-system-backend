@@ -10,70 +10,24 @@ import os
 
 ###處理mediapipe資料的no detection
 def interpolate_landmarks(input_file):
-    # 讀取TXT文件
     df = pd.read_csv(input_file, header=None, names=["frame", "landmark", "x", "y"])
-    if df.empty:
-        raise ValueError(f"The input file '{input_file}' is empty or contains no valid data.")
-
-    # 將 'no detection' 替換為 NaN
     df.replace('no detection', np.nan, inplace=True)
-
-    # 將需要進行插值的列轉換為數值型
     df[['landmark', 'x', 'y']] = df[['landmark', 'x', 'y']].apply(pd.to_numeric, errors='coerce')
 
-    # 取得所有 frame 的範圍
-    all_frames = df['frame'].unique()
+    # ✅ 用 pivot_table 避免重複 (frame, landmark) 報錯
+    pivot_x = df.pivot_table(index='frame', columns='landmark', values='x', aggfunc='mean')
+    pivot_y = df.pivot_table(index='frame', columns='landmark', values='y', aggfunc='mean')
 
-    # 準備一個空的列表來儲存最終結果
-    interpolated_data = []
+    # 插值填補缺失
+    pivot_x = pivot_x.interpolate(method='linear', limit_direction='both', axis=0)
+    pivot_y = pivot_y.interpolate(method='linear', limit_direction='both', axis=0)
 
-    # 對每個 frame 進行處理
-    for frame in all_frames:
-        current_frame_data = df[df['frame'] == frame]
+    # 回轉為長格式
+    result_df = pivot_x.stack().reset_index()
+    result_df.columns = ['frame', 'landmark', 'x']
+    result_df['y'] = pivot_y.stack().reset_index(drop=True)
 
-        # 儲存該 frame 的所有資料
-        if current_frame_data.empty:
-            continue  # 如果沒有資料則跳過
-
-        if 'no detection' in current_frame_data.values:
-            # 如果有 'no detection' 的標記，儲存該行
-            for landmark in range(0, 17):
-                interpolated_data.append([frame, landmark, np.nan, np.nan])
-            continue
-
-        # 對 landmarks 11 到 24 進行插值
-        for landmark in range(0, 17):
-            landmark_data = current_frame_data[current_frame_data['landmark'] == landmark]
-
-            if landmark_data.empty:
-                # 如果當前 landmark 沒有資料，則進行內插
-                prev_frame_data = df[(df['frame'] < frame) & (df['landmark'] == landmark)].iloc[-1] if not df[(df['frame'] < frame) & (df['landmark'] == landmark)].empty else None
-                next_frame_data = df[(df['frame'] > frame) & (df['landmark'] == landmark)].iloc[0] if not df[(df['frame'] > frame) & (df['landmark'] == landmark)].empty else None
-                
-                if prev_frame_data is not None and next_frame_data is not None:
-                    interp_x = (prev_frame_data['x'] + next_frame_data['x']) / 2
-                    interp_y = (prev_frame_data['y'] + next_frame_data['y']) / 2
-#                     interp_z = (prev_frame_data['z'] + next_frame_data['z']) / 2
-                elif prev_frame_data is not None:
-                    interp_x = prev_frame_data['x']
-                    interp_y = prev_frame_data['y']
-#                     interp_z = prev_frame_data['z']
-                elif next_frame_data is not None:
-                    interp_x = next_frame_data['x']
-                    interp_y = next_frame_data['y']
-#                     interp_z = next_frame_data['z']
-                else:
-                    interp_x = interp_y = interp_z = np.nan
-                
-                interpolated_data.append([frame, landmark, interp_x, interp_y])
-            else:
-                # 如果有資料，則直接取用
-                landmark_row = landmark_data.iloc[0]
-                interpolated_data.append([frame, landmark_row['landmark'], landmark_row['x'], landmark_row['y']])
-
-    # 將結果轉換為 DataFrame
-    output_df = pd.DataFrame(interpolated_data, columns=["frame", "landmark", "x", "y"])
-    return output_df.to_numpy()
+    return result_df[['frame', 'landmark', 'x', 'y']].to_numpy()
 
 ####處理yolo的no detection並且內插
 def load_bar_data(filename):

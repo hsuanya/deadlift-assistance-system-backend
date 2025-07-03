@@ -32,7 +32,10 @@ def rc_prep(folder):
     outs = [None] * 3
     skeleton_files = [None] * 3
     for idx, vision  in enumerate(visions):
-        file = os.path.join(folder, f'vision{idx+1}_skeleton.avi')
+        if idx == 0:
+            file = os.path.join(folder, f'vision{idx+1}_drawed.avi')
+        else:
+            file = os.path.join(folder, f'vision{idx+1}_skeleton.avi')
         fourcc = cv2.VideoWriter_fourcc(*'XVID')  # 使用 mp4v 編碼
         frame_size = (480, 640)  # 幀大小 (width, height)
         out = cv2.VideoWriter(file, fourcc, 29, frame_size)
@@ -44,24 +47,35 @@ def rc_prep(folder):
 def predict(folder):
     os.makedirs(f'{folder}/config', exist_ok=True)
     # 對槓端及骨架做內插
+    first = time.time()
     run_interpolation(folder)
+    print("run_interpolation time :", time.time()-first)
+    
     # bar
+    first = time.time()
     run_bar_data_produce(folder, sport='deadlift')
+    print("run_bar_data_produce time :", time.time()-first)
+    
     # angle
+    first = time.time()
     run_data_produce(folder)
+    print("run_data_produce time :", time.time()-first)
+    
     # split data
+    first = time.time()
     run_data_split(folder)
+    print("run_data_split time :", time.time()-first)
     
+    first = time.time()
     plot_trajectory(folder)
+    print("plot_trajectory time :", time.time()-first)
     
-    # modle predict
     first = time.time()
     run_predict(folder)
-    print("processing time :", time.time()-first)
-    
+    print("run_predict time :", time.time()-first)
+
 def pre_run(video_path):
     first_time = time.time()
-    # video_path = './recordings/recording_20250328_140019'
     bar_model, bone_model = model_init()
     skeleton_connections = [
             (0, 1),
@@ -83,6 +97,8 @@ def pre_run(video_path):
     caps = []
     outs = [None] * 3
     skeleton_files = [None] * 3
+    skeleton_data = {0:{},1:{},2:{}}
+    bar_data = {}
     outs, bar_file, skeleton_files = rc_prep(video_path)
     print('Prepare for writing image')
     for i in range(3):
@@ -95,9 +111,9 @@ def pre_run(video_path):
             continue
         caps.append(cap)
 
+    start_time = time.time()
     while True:
         all_done = True  # 假設全部都讀完了
-        start_time = time.time()
         for i, cap in enumerate(caps):
             ret, frame = cap.read()
             # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)  # resize to 640x480
@@ -108,20 +124,35 @@ def pre_run(video_path):
             all_done = False  # 有任何一支還在跑，就不跳出
             
             if i == 0:
-                processed_frame = bar_frame(frame, bar_model,
-                                            bone_model, skeleton_connections, skeleton_files[i],
-                                            bar_file, frame_count_for_detect)
+                processed_frame, skeleton_data[i][frame_count_for_detect], bar_data[frame_count_for_detect] = bar_frame(
+                    frame, bar_model,bone_model, skeleton_connections,bar_file, frame_count_for_detect)
             else:
-                processed_frame = bone_frame(frame, bone_model,
-                                            skeleton_connections, skeleton_files[i],
+                processed_frame, skeleton_data[i][frame_count_for_detect] = bone_frame(frame, bone_model,
+                                            skeleton_connections,
                                             frame_count_for_detect)
-            outs[i].write(processed_frame)
+                outs[i].write(processed_frame)
 
         frame_count_for_detect += 1
         # print('processing time per frame : ', time.time() - start_time)
         if all_done:
             print("All videos have been processed.")
+            print("predict time :", time.time()-start_time)
             break
+    
+    # ✅ 儲存 skeleton_data（合併記憶體資料再寫入）
+    for vision_index, frames in skeleton_data.items():
+        buffer = []
+        for f, data in sorted(frames.items()):
+            buffer.extend(data)  # 每一幀的 list[str]
+        if skeleton_files[vision_index]:  # 確保檔案存在
+            skeleton_files[vision_index].writelines(buffer)
+
+    # ✅ 儲存 bar_data
+    bar_buffer = []
+    for f, data in sorted(bar_data.items()):
+        bar_buffer.extend(data)  # 一幀可能多筆 bar box 資料
+    if bar_file:
+        bar_file.writelines(bar_buffer)
         
     for cap in caps:
         cap.release()
@@ -137,5 +168,5 @@ def pre_run(video_path):
     predict(video_path)
     print('processing time per video : ', time.time() - first_time)
 if __name__ == "__main__":
-    video_path = "./recordings/recording_20250328_140412"
+    video_path = './recordings/recording_20250328_140412'
     pre_run(video_path)
