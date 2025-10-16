@@ -10,7 +10,7 @@ def bar_frame(frame,
                 frame_count_for_detect):
     # frame 處理
     start_time = time.time()
-    results = bar_model.predict(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
+    results = bar_model(source=frame, imgsz=320, conf=0.5, verbose=False, device="cuda:0")
     # print('bar predict :', time.time() - start_time)
     boxes = results[0].boxes
     detected = False
@@ -19,17 +19,17 @@ def bar_frame(frame,
     
     # write result
     bar_data = []
-    if bar_file is not None:
-        for box in boxes.xywh:
-            detected = True
-            x_center, y_center, width, height = box
-            bar_data.append(
-                f"{frame_count_for_detect},{x_center},{y_center},{width},{height}\n"
-            )
+    # if bar_file is not None:
+    for box in boxes.xywh:
+        detected = True
+        x_center, y_center, width, height = box
+        bar_data.append(
+            f"{frame_count_for_detect},{x_center},{y_center},{width},{height}\n"
+        )
 
-        if not detected:
-            frame_count_for_detect += 1
-            bar_data.append(f"{frame_count_for_detect},no detection\n")
+    if not detected:
+        frame_count_for_detect += 1
+        bar_data.append(f"{frame_count_for_detect},no detection\n")
         
     results = list(bone_model(source=frame, verbose=False, device="cuda:0"))
     skeleton_data = []  # 存放該幀的骨架點

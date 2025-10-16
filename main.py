@@ -69,13 +69,13 @@ def get_detection_result(item_id: int):
         result['score'][key]['away_from_the_shins'] = values[0]
         result['score'][key]['hips_rise_before_barbell'] = values[1]
         result['score'][key]['colliding_with_the_knees'] = values[2]
-        result['score'][key]['lower_back_rounding'] = values[2]
+        result['score'][key]['back_rounding'] = values[2]
 
         index_max = max(range(len(values)), key=values.__getitem__)
         if values[index_max] < 0.5:
-            result['score'][key]['error'] = '動作正確'
+            result['score'][key]['error'] = 'correct'
         else:
-            error = ["槓鈴距離小腿過遠", "臀部先上升", "槓鈴繞過膝蓋", "駝背"]
+            error = ["away_from_the_shins", "hips_rise_before_barbell", "colliding_with_the_knees", "back_rounding"]
             result['score'][key]['error'] = error[index_max]
 
     error_config = copy.deepcopy(result['score'])
@@ -88,36 +88,6 @@ def get_detection_result(item_id: int):
         recordings[str(item_id)]['total_frames'] = total_frames
         recordings[str(item_id)]['error'] = error_config
         json.dump(recordings, json_file, indent=4)
-
-    # error = ["動作正確", "槓鈴遠離小腿", "臀部先上升", "槓鈴繞膝蓋", "駝背"]
-    # error_result = random.randint(0, 4)
-    # confidence_level = {
-    #     "away_from_the_shins":
-    #     random.randint(0 if error_result != 1 else 50,
-    #                    50 if error_result != 1 else 100) / 100.0,
-    #     "Hips_rise_before_barbell":
-    #     random.randint(0 if error_result != 2 else 50,
-    #                    50 if error_result != 2 else 100) / 100.0,
-    #     "colliding_with_the_knees":
-    #     random.randint(0 if error_result != 3 else 50,
-    #                    50 if error_result != 3 else 100) / 100.0,
-    #     "lower_back_rounding":
-    #     random.randint(0 if error_result != 4 else 50,
-    #                    50 if error_result != 4 else 100) / 100.0,
-    # }
-    # result = {
-    #     "id": str(item_id),
-    #     "error": error[error_result],
-    #     "confidence_level": confidence_level
-    # }
-    # try:
-    #     with open("recordings.json", mode='r', encoding='utf-8') as json_file:
-    #         data = json.load(json_file)
-    # except:
-    #     data = {}
-    # data[item_id] = result
-    # with open("recordings.json", mode='w', encoding='utf-8') as json_file:
-    #     json.dump(data, json_file, indent=4)
 
     return result
 
@@ -136,34 +106,6 @@ def get_graph(item_id: int):
             data = json.load(json_file)
         result.append(data)
     return {'result': result}
-
-
-# @app.get("/video/{item_id}/{vision_index}")
-# async def get_video(item_id: int, vision_index: int):
-#     with open("recordings.json", mode='r', encoding='utf-8') as json_file:
-#         data = json.load(json_file)
-#         folder = data[str(item_id)]["recording_folder"]
-
-#     video_name = f"vision{vision_index}_drawed" if vision_index == 1 else f"vision{vision_index}"
-#     mp4_path = os.path.join(folder, f"{video_name}.mp4")
-
-#     count = 0
-#     while (not os.path.exists(os.path.join(folder, f"{video_name}.avi"))):
-#         if (count == 20): break
-#         count += 1
-#         await asyncio.sleep(1.5)
-
-#     # 轉檔為 MP4
-#     if not os.path.exists(mp4_path):
-#         ffmpeg_cmd = [
-#             "ffmpeg", "-i",
-#             os.path.join(folder, f"{video_name}.avi"), "-c:v", "libx264",
-#             "-c:a", "aac", "-strict", "experimental", mp4_path
-#         ]
-#         subprocess.run(ffmpeg_cmd, check=True)
-
-#     print(mp4_path)
-#     return FileResponse(mp4_path, media_type="video/mp4")
 
 @app.get("/video/{item_id}/{vision_index}")
 async def get_video(item_id: int, vision_index: int):
@@ -189,19 +131,6 @@ async def get_video(item_id: int, vision_index: int):
         return FileResponse(mp4_path, media_type="video/mp4")
 
     avi_to_mp4(folder, video_name)
-    # 加鎖轉檔，避免多個請求同時轉同一個檔案
-    # with FileLock(lock_path):
-    #     # 二次確認轉檔後是否已存在，避免重複轉檔
-    #     if not os.path.exists(mp4_path):
-    #         # 轉成 temp 檔，轉完再 rename 為正式 mp4
-    #         ffmpeg_cmd = [
-    #             "ffmpeg", "-i", avi_path,
-    #             "-c:v", "libx264", "-c:a", "aac",
-    #             "-strict", "experimental", temp_path
-    #         ]
-    #         subprocess.run(ffmpeg_cmd, check=True)
-
-    #         os.rename(temp_path, mp4_path)
 
     return FileResponse(mp4_path, media_type="video/mp4")
 
@@ -233,7 +162,7 @@ def read_feedback(item_id: int):
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
-    feedback_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作的信心值可以輔助判斷(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，越大表示該錯誤錯得越明顯，請問要怎麼修正他的動作，指出哪一下有問題。請用 markdown 語法回答，給我中文回答"""
+    feedback_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作的信心值可以輔助判斷(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，越大表示該錯誤錯得越明顯，請問要怎麼修正他的動作，指出哪一下有問題。請用 markdown 語法回答，給我英文回答"""
     feedback_result = api_func.get_openai_response(feedback_prompt)
 
     return {'result': extract_markdown(feedback_result)}
@@ -248,7 +177,7 @@ def read_workout_plan(item_id: int):
         data = json.load(json_file)
         error = data[str(item_id)]["error"]
 
-    plan_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作分類模型的信心值(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，你會建議他怎麼「安排一週詳細的訓練菜單」，越清楚越好。請用 markdown 語法回答"""    
+    plan_prompt = f"""你是一個健身教練，這是我在做一組硬舉訓練時發生的錯誤--{error}，key為第幾組，value包含了4個錯誤動作分類模型的信心值(回答以信心值作為嚴重程度的標準，例如:可能、有一點、明顯等等，不要直接出現信心值)，你會建議他怎麼「安排一週詳細的訓練菜單」，越清楚越好。請用 markdown 語法回答，給我英文回答，不要廢話"""    
     plan_result = api_func.get_openai_response(plan_prompt)
     return {'result': extract_markdown(plan_result)}
 
@@ -515,45 +444,3 @@ async def websocket_endpoint(websocket: WebSocket):
             }
         print(f'total: ${time.time()* 1000 - server_recv_ts}')
         await websocket.send_text(json.dumps(result_ts))
-
-# @app.websocket("/ws/stream")
-# async def websocket_endpoint(websocket: WebSocket):
-#     await websocket.accept()
-#     while True:
-#         t0 = time.time()
-#         data = await websocket.receive_bytes()
-#         t1 = time.time()
-#         print("[TIMER] Received data in:", round((t1 - t0) * 1000), "ms")
-
-#         pointer = 0
-#         results = []
-#         t2 = time.time()
-#         while pointer + 8 <= len(data):
-#             idx = int.from_bytes(data[pointer:pointer + 4], byteorder='big')
-#             pointer += 4
-
-#             img_len = int.from_bytes(data[pointer:pointer + 4], byteorder='big')
-#             pointer += 4
-
-#             img_data = data[pointer:pointer + img_len]
-#             pointer += img_len
-
-#             # decode frame
-#             nparr = np.frombuffer(img_data, np.uint8)
-#             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-#             # process frame (dummy: return original image)
-#             _, buffer = cv2.imencode('.jpg', frame)
-#             encoded = buffer.tobytes()
-
-#             # prepare response with index
-#             result = idx.to_bytes(4, byteorder='big') + len(encoded).to_bytes(4, byteorder='big') + encoded
-#             results.append(result)
-#         t3 = time.time()
-#         print("[TIMER] Decoded and encoded in:", round((t3 - t2) * 1000), "ms")
-
-#         # 組合所有 processed frame 成為一包
-#         await websocket.send_bytes(b''.join(results))
-#         t4 = time.time()
-#         print("[TIMER] Sent result in:", round((t4 - t3) * 1000), "ms")
-#         print("[TOTAL] Full round took:", round((t4 - t0) * 1000), "ms")

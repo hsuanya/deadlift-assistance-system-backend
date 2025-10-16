@@ -10,7 +10,7 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 def stream_openai_response(prompt: str):
     try:
         stream = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[{
                 "role": "user",
                 "content": prompt
@@ -31,7 +31,7 @@ def stream_openai_response(prompt: str):
 
 def get_openai_response(prompt: str) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4o",
         messages=[{
             "role": "user",
             "content": prompt

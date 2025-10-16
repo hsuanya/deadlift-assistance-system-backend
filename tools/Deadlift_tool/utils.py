@@ -146,6 +146,7 @@ def adjust_valleys_with_bar_data(path, bar_data, knee_angles):
     valleys, valleys1 = find_valley(knee_angles)
     data = {}
     reps = {}
+    k = 0
     for i, (start_frame, end_frame) in enumerate(zip(valleys, valleys1)):
         if start_frame >= end_frame:
             print(f"跳過無效範圍: 開始 {start_frame}, 結束 {end_frame}")
@@ -166,7 +167,8 @@ def adjust_valleys_with_bar_data(path, bar_data, knee_angles):
         split_info = {}
         split_info['start'] = int(start_frame)
         split_info['end'] = int(end_frame)
-        data[str(i)] = split_info
+        data[str(k)] = split_info
+        k += 1
 
         reps[i] = (int(start_frame), int(end_frame))
     
