@@ -7,8 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from filelock import FileLock
 from sse_starlette.sse import EventSourceResponse
-import random
-import requests
 import json
 import ast
 import re
@@ -19,7 +17,7 @@ import os, time
 import subprocess
 import copy
 
-from compute_frame import Human_Vision, predict
+from compute_frame import Human_Vision
 from pre_run import pre_run
 import api_func
 
@@ -216,13 +214,6 @@ def read_video_list(item_id: int):
                 break
             continue
 
-    # result = []
-    # for video in video_list:
-    #     oembed_url = f"https://www.youtube.com/oembed?url={video['url']}&format=json"
-    #     response = requests.get(oembed_url)
-    #     if response.status_code == 200:
-    #         video["video_id"] = video['url'].split("v=")[-1]
-    #         result.append(video)
     return {'result': result}
 
 @app.post("/upload_record")
@@ -239,11 +230,6 @@ def upload_files(files: List[UploadFile] = File(...)):
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         saved_files.append(file_location)
-
-        # # 轉檔為 MP4
-        # if os.path.splitext(file_location)[1] == ".avi":
-        #     print("############filename:"+os.path.splitext(file.filename)[0])
-        #     avi_to_mp4(folder_path, os.path.splitext(file.filename)[0])
 
     global id
     with open("recordings.json", mode='r', encoding='utf-8') as json_file:
@@ -401,11 +387,8 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     human_vision = Human_Vision()
 
-    # count = 0
     while True:
         data = await websocket.receive_text()
-        # print('receive_text', count)
-        # count += 1
         result = []
         result_ts = []
         messages = json.loads(data)
@@ -420,7 +403,6 @@ async def websocket_endpoint(websocket: WebSocket):
             frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             cam_index = message['index']
 
-            # cv2.imwrite(f'./images/{cam_index}.jpg', frame)
             human_vision.create_thread(cam_index, frame, is_recording, id)
         print(f'create_thread: ${time.time()* 1000 - server_recv_ts}')
 
