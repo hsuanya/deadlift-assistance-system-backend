@@ -15,7 +15,7 @@ class BiLSTMModel(nn.Module):
         out = self.fc(torch.cat((hn[-2], hn[-1]), dim=1))  # 拼接正向與反向 hidden state
         return out
     
-def merge_data(folder):
+def merge_data(preprocess_features):
     features = []
     delta_path = os.path.join(folder, 'filtered_delta_norm')
     delta2_path = os.path.join(folder, 'filtered_delta2_norm')
@@ -89,7 +89,7 @@ def save_to_config(y_data, output_file):
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(config_data, f, indent=4, default=convert)
 
-def run_predict(folder):
+def run_predict(folder, preprocess_features):
     output_file = os.path.join(folder, 'config', 'Score.json')
 
     category = {
@@ -100,8 +100,7 @@ def run_predict(folder):
     }
     results = {}
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    data_path = os.path.join(folder, 'data_norm2')
-    features = merge_data(data_path)
+    features = merge_data(preprocess_features)
     for num, name in category.items():
         model = BiLSTMModel(input_dim=40)
         state_dict = torch.load(

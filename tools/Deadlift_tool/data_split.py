@@ -129,6 +129,7 @@ def process_normalization(features, output_folder):
         normalized_features[i] = normalized_feature
         file = os.path.join(output_folder, f'merged_{i}.txt')
         np.savetxt(file, normalized_feature, fmt='%.6f', delimiter=',')
+    return normalized_features
 
 def run_data_split(path):
     feartures = {}
@@ -171,11 +172,14 @@ def run_data_split(path):
     zscore_feature = process_zscore(filtered_feature)
     delta_ratio_feature = process_delta_ratio(filtered_feature)
     output_folder = os.path.join(path, 'data_norm2')
-    output = {"filtered_norm":filtered_feature, "filtered_delta_norm":delta_feature, "filtered_delta2_norm":delta_ratio_feature, "filtered_zscore_norm":zscore_feature, "filtered_delta_square_norm": delta_square_feature}
+    output = {"filtered_norm":filtered_feature, "filtered_delta_norm":delta_feature, 
+            "filtered_delta2_norm":delta_ratio_feature, "filtered_zscore_norm":zscore_feature, "filtered_delta_square_norm": delta_square_feature}
     # 處理 delta 和 delta2
     for folder, features in output.items():
         features_path = os.path.join(output_folder, folder)
-        process_normalization(features, features_path)
+        normalized_features = process_normalization(features, features_path)
+        output[folder] = normalized_features
+    return output
 
 if __name__ == "__main__":
     run_data_split('./recordings/recording_20250328_140412')

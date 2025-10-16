@@ -63,7 +63,7 @@ def predict(folder):
     
     # split data
     first = time.time()
-    run_data_split(folder)
+    features = run_data_split(folder)
     print("run_data_split time :", time.time()-first)
     
     first = time.time()
@@ -71,7 +71,7 @@ def predict(folder):
     print("plot_trajectory time :", time.time()-first)
     
     first = time.time()
-    run_predict(folder)
+    run_predict(features)
     print("run_predict time :", time.time()-first)
 
 def pre_run(video_path):
