@@ -37,9 +37,9 @@ class Human_Vision:
             (13, 15)  # Left leg
         ]
         self.frame_count = 0
-        self.lock = threading.Lock()  # Protect frame_count
         self.barrier = threading.Barrier(3)
         self.clear_runtime_data()
+        # read only
         self.recording_sig = False
         self.frame_count_for_detect = 0
         self.outs = [None] * 3
@@ -67,6 +67,8 @@ class Human_Vision:
     def create_thread(self, i, frame, rc_sig, id):
         # rc_sig 為新訊號
         # self.recording_sig 為舊訊號
+        
+        # 開始錄影
         if rc_sig and rc_sig != self.recording_sig:
             if i == 0:
                 now = datetime.now()
@@ -88,9 +90,13 @@ class Human_Vision:
                 self.outs, self.bar_file, self.skeleton_files = self.rc_prep(frame, folder)
                 print('Prepare for writing image')
                 self.frame_count_for_detect = 0
+        
+        # 狀態不改變
         elif rc_sig == self.recording_sig:
             if i == 0:
                 self.frame_count_for_detect += 1
+                
+        # 停止錄影
         else:
             if i == 0:
                 print('close file')
@@ -118,14 +124,17 @@ class Human_Vision:
         out = self.outs[i]
         bar_file = self.bar_file
         skeleton_file = self.skeleton_files[i]
+        # bar vision
         if i == 0:
             frame = loop.bar_frame(frame, self.bar_model, self.bone_model,
                                     self.skeleton_connections, skeleton_file,
                                     bar_file, self.frame_count_for_detect)
+        # left-front vision
         elif i == 1:
             frame = loop.bone_frame(frame, self.bone_model,
                                     self.skeleton_connections, skeleton_file,
                                     self.frame_count_for_detect)
+        # left-back vision
         else:
             frame = loop.bone_frame(frame, self.bone_model,
                                     self.skeleton_connections, skeleton_file,
