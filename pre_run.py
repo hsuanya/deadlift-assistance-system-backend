@@ -6,7 +6,6 @@ from ultralytics import YOLO
 import torch
 import os
 from tools.Deadlift_tool.interpolate import run_interpolation
-from tools.Deadlift_tool.interpolate import run_interpolation
 from tools.Deadlift_tool.bar_data_produce import run_bar_data_produce
 from tools.Deadlift_tool.data_produce import run_data_produce
 from tools.Deadlift_tool.data_split import run_data_split

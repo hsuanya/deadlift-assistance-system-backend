@@ -8,13 +8,6 @@ import cv2
 import numpy as np
 from datetime import datetime
 import json
-from tools.Deadlift_tool.interpolate import run_interpolation
-from tools.Deadlift_tool.interpolate import run_interpolation
-from tools.Deadlift_tool.bar_data_produce import run_bar_data_produce
-from tools.Deadlift_tool.data_produce import run_data_produce
-from tools.Deadlift_tool.data_split import run_data_split
-from tools.Deadlift_tool.predict import run_predict
-from tools.trajectory import plot_trajectory
 
 class Human_Vision:
     def __init__(self):
@@ -171,18 +164,3 @@ class Human_Vision:
             outs[idx] = out
             skeleton_files[idx] = skeleton_file
         return outs, bar_file, skeleton_files
-
-def predict(folder):
-    os.makedirs(f'{folder}/config', exist_ok=True)
-    # 對槓端及骨架做內插
-    run_interpolation(folder)
-    # bar
-    run_bar_data_produce(folder, sport='deadlift')
-    # angle
-    run_data_produce(folder)
-    # split data
-    run_data_split(folder)
-    # modle predict
-    run_predict(folder)
-    
-    plot_trajectory(folder)
